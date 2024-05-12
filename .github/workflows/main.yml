@@ -1,0 +1,63 @@
+name: Main Workflow
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+
+jobs:
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: npm install
+      - name: Run tsc
+        run: npm run build
+      - name: Run fmt check
+        run: npm run fmt-check
+      - name: Run lint check
+        run: npm run lint
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - run: npm install
+      - run: npm audit --audit-level moderate --omit dev
+
+  test-defaults:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+
+  test-inputs:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-size: 2GB
+          drive-format: NTFS
+          drive-path: "my_awesome_drive.vhdx"
+          workspace-copy: true

@@ -1,0 +1,20 @@
+name: "Setup Dev Drive"
+description: "A GitHub Action to setup a Windows Dev Drive."
+author: "samypr100"
+inputs:
+  drive-size:
+    description: "Drive Size. Examples: 1GB, 3GB, 10GB."
+    default: "1GB"
+  drive-format:
+    description: "Drive Format. Examples: FAT, FAT32, exFAT, NTFS, ReFS."
+    default: "ReFS"
+  drive-path:
+    description: "Absolute or relative path to the Dev Drive storage location. Example: C:/path/to/my/dev_drive.vhdx"
+    default: "dev_drive.vhdx"
+  workspace-copy:
+    description: "Copy your GITHUB_WORKSPACE checkout to your Dev Drive. Examples: true, false."
+    default: "false"
+runs:
+  using: "node20"
+  main: "dist/main.js"
+  post: "dist/post.js"

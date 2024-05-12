@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "forceConsistentCasingInFileNames": true,
+    "newLine": "lf",
+    "noImplicitAny": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "./dist",
+    "./node_modules"
+  ]
+}
