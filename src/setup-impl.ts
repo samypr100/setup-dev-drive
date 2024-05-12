@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import { toPlatformPath } from '@actions/core'
 import { exec, ExecOptions } from '@actions/exec'
 import { quote } from 'shell-quote'
 import os from 'node:os'
@@ -12,15 +13,16 @@ import {
   NATIVE_DEV_DRIVE_WIN_VERSION,
   POWERSHELL_BIN,
   StateVariables,
+  VHDDriveTypes,
   VHDX_EXTENSION,
   WIN_PLATFORM,
 } from './constants'
-import { toPlatformPath } from '@actions/core'
 
 function genSetupCommandArgs(
   driveSize: string,
   driveFormat: string,
   drivePath: string,
+  driveType: string,
 ): string[] {
   const sizeArg = quote([driveSize])
   const formatArg = quote([driveFormat])
@@ -36,7 +38,7 @@ function genSetupCommandArgs(
   }
 
   const pwshCommand = [
-    `$DevDrive = New-VHD -Path ${pathArg} -SizeBytes ${sizeArg} -Fixed |`,
+    `$DevDrive = New-VHD -Path ${pathArg} -SizeBytes ${sizeArg} -${driveType} |`,
     'Mount-VHD -Passthru |',
     'Initialize-Disk -Passthru |',
     'New-Partition -AssignDriveLetter -UseMaximumSize |',
@@ -53,6 +55,7 @@ async function execSetupCommand(
   driveSize: string,
   driveFormat: string,
   drivePath: string,
+  driveType: string,
 ): Promise<string> {
   const options: ExecOptions = {}
   let outStr = ''
@@ -66,7 +69,12 @@ async function execSetupCommand(
     },
   }
 
-  const pwshCommandArgs = genSetupCommandArgs(driveSize, driveFormat, drivePath)
+  const pwshCommandArgs = genSetupCommandArgs(
+    driveSize,
+    driveFormat,
+    drivePath,
+    driveType,
+  )
 
   await exec(POWERSHELL_BIN, pwshCommandArgs, options)
 
@@ -98,6 +106,7 @@ async function doCreateDevDrive(
   driveSize: string,
   driveFormat: string,
   drivePath: string,
+  driveType: string,
 ): Promise<string> {
   // Normalize User Path Input
   let normalizedDrivePath = toPlatformPath(drivePath)
@@ -108,11 +117,18 @@ async function doCreateDevDrive(
     throw new Error(`Make sure ${ExternalInputs.DrivePath} ends with ${VHDX_EXTENSION}`)
   }
 
+  // Check Drive Type
+  if (!VHDDriveTypes.has(driveType)) {
+    const allowedMsg = [...VHDDriveTypes].join(' or ')
+    throw new Error(`Make sure ${ExternalInputs.DriveType} is either ${allowedMsg}`)
+  }
+
   core.info('Creating Dev Drive...')
   const driveLetter = await execSetupCommand(
     driveSize,
     driveFormat,
     normalizedDrivePath,
+    driveType,
   )
 
   core.debug(`Exporting EnvVar ${EnvVariables.DevDrive}=${driveLetter}`)
@@ -150,13 +166,19 @@ export async function setup(
   driveSize: string,
   driveFormat: string,
   drivePath: string,
+  driveType: string,
   copyWorkspace: boolean,
 ): Promise<void> {
   if (process.platform !== WIN_PLATFORM) {
     throw new Error('This action can only run on windows.')
   }
 
-  const driveLetter = await doCreateDevDrive(driveSize, driveFormat, drivePath)
+  const driveLetter = await doCreateDevDrive(
+    driveSize,
+    driveFormat,
+    drivePath,
+    driveType,
+  )
 
   if (copyWorkspace) {
     await doCopyWorkspace(driveLetter)
