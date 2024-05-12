@@ -61,6 +61,7 @@ jobs:
           drive-format: NTFS
           drive-type: Fixed
           drive-path: "my_awesome_drive.vhdx"
+          mount-if-exists: false
           workspace-copy: true
 
   test-large-fixed:
@@ -84,3 +85,64 @@ jobs:
         with:
           drive-size: 10GB
           drive-type: Dynamic
+
+  test-path-with-spaces:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-size: 50MB
+          drive-format: NTFS
+          drive-path: "path/to/my/dev drive with spaces.vhdx"
+      - name: Write File to Dev Drive
+        working-directory: ${{ env.DEV_DRIVE }}
+        run: New-Item test.txt
+
+  test-cache-storage:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-size: 50MB
+          drive-format: NTFS
+          drive-path: "my_cached_drive.vhdx"
+          mount-if-exists: true
+      - name: Write File to Dev Drive
+        working-directory: ${{ env.DEV_DRIVE }}
+        run: |
+          New-Item test.txt
+          Dismount-VHD -Path ${{ env.DEV_DRIVE_PATH }}
+      - name: Cache Dev Drive
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.DEV_DRIVE_PATH }}
+          key: test-cache-${{ github.run_id }}
+    outputs:
+      dev-drive-path: ${{ env.DEV_DRIVE_PATH }}
+
+  test-cache-retrieval:
+    runs-on: windows-2022
+    needs: [test-cache-storage]
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Retrieve Cached Dev Drive
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ needs.test-cache-storage.outputs.dev-drive-path }}
+          key: test-cache-${{ github.run_id }}
+          fail-on-cache-miss: true
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-path: "my_cached_drive.vhdx"
+          mount-if-exists: true
+      - name: Check File in Dev Drive
+        working-directory: ${{ env.DEV_DRIVE }}
+        run: Test-Path test.txt -PathType Leaf

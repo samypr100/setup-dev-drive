@@ -30,6 +30,7 @@ You can optionally pass parameters to the action as follows:
     drive-format: ReFS
     drive-type: Fixed
     drive-path: "dev_drive.vhdx"
+    mount-if-exists: false
     workspace-copy: true
 ```
 
@@ -66,6 +67,12 @@ payload to cache when the job ends.
 
 `Fixed` gives you a notable performance boost, but there's a small creation overhead.
 
+#### `mount-if-exists`
+
+Mounts the Dev Drive if it already exists at `drive-path` location. When it does not exist,
+it will fall back to creating one at that location instead. This is useful when your workflow
+caches the Dev Drive for further use in other jobs via `actions/cache`.
+
 #### `workspace-copy`
 
 This copies `${{ github.workspace }}` to your Dev Drive. Usually when you use `actions/checkout`
@@ -91,6 +98,16 @@ assigned letter is `E`, `${{ env.DEV_DRIVE }}` will contain `E:`.
 When `workspace-copy` is set to true, this contains the workspace location as represented
 by the dev drive location. For example if your GitHub workspace is `C:\a\<project-name>\<project-name>`
 your dev drive workspace will be `E:\<project-name>` by default assuming the drive letter is `E`.
+
+#### `DEV_DRIVE_PATH`
+
+The canonical location of the VHDX file.
+
+When `drive-path` is set to a relative path like `my_drive.vhdx`
+the location in this variable will likely be `C:\my_drive.vhdx`.
+
+On the other hand, when `drive-path` is set to an absolute path,
+that's likely what this variable will contain after normalization.
 
 ### Examples
 

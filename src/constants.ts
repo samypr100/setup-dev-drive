@@ -3,16 +3,18 @@ export enum ExternalInputs {
   DriveFormat = 'drive-format',
   DrivePath = 'drive-path',
   DriveType = 'drive-type',
+  MountIfExists = 'mount-if-exists',
   WorkspaceCopy = 'workspace-copy',
 }
 
 export enum EnvVariables {
   DevDrive = 'DEV_DRIVE',
   DevDriveWorkspace = 'DEV_DRIVE_WORKSPACE',
+  DevDrivePath = 'DEV_DRIVE_PATH',
 }
 
 export enum StateVariables {
-  DevDrivePath = 'DEV_DRIVE_PATH',
+  DevDrivePath = EnvVariables.DevDrivePath,
 }
 
 export enum GithubVariables {

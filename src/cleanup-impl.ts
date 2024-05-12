@@ -1,7 +1,6 @@
 import * as core from '@actions/core'
-import { exec, ExecOptions } from '@actions/exec'
-import { POWERSHELL_BIN, StateVariables, WIN_PLATFORM } from './constants'
-import { quote } from 'shell-quote'
+import { StateVariables, WIN_PLATFORM } from './constants'
+import { dismount } from './vhd-commands'
 
 export async function cleanup(): Promise<void> {
   if (process.platform !== WIN_PLATFORM) {
@@ -13,15 +12,6 @@ export async function cleanup(): Promise<void> {
   const drivePath = core.getState(StateVariables.DevDrivePath)
   core.debug(`Retrieved State ${StateVariables.DevDrivePath}=${drivePath}`)
 
-  const pathArg = quote([drivePath])
-  const pwshCommand = `Dismount-VHD -Path ${pathArg}`
-  const pwshCommandArgs = ['-NoProfile', '-Command', `. {${pwshCommand}}`]
-
-  const options: ExecOptions = {}
-  options.failOnStdErr = false
-  options.ignoreReturnCode = true
-
-  const ret = await exec(POWERSHELL_BIN, pwshCommandArgs, options)
-
+  const ret = await dismount(drivePath)
   core.info(`Removal completed with exit code ${ret}...`)
 }

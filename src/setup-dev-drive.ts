@@ -7,8 +7,16 @@ async function main() {
   const driveFormat = core.getInput(ExternalInputs.DriveFormat)
   const drivePath = core.getInput(ExternalInputs.DrivePath)
   const driveType = core.getInput(ExternalInputs.DriveType)
+  const mountIfExists = core.getBooleanInput(ExternalInputs.MountIfExists)
   const copyWorkspace = core.getBooleanInput(ExternalInputs.WorkspaceCopy)
-  await setup(driveSize, driveFormat, drivePath, driveType, copyWorkspace)
+  await setup(
+    driveSize,
+    driveFormat,
+    drivePath,
+    driveType,
+    mountIfExists,
+    copyWorkspace,
+  )
 }
 
 main().catch(err => core.setFailed(err.message))
