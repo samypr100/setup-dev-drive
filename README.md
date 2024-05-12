@@ -117,3 +117,8 @@ This action will gracefully still work even if Native Dev Drive is not available
 
 On cases where runners may still not be updated to meet the minimum version, you can
 still get speed gains by using this action due to `ReFS` and `VHDX` usage.
+
+
+## Credits
+
+Thanks to Paco Sevilla for the idea to use a VHDX within a Github Workflow.
