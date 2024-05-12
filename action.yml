@@ -17,6 +17,9 @@ inputs:
   drive-type:
     description: "Determines whether all space is allocated initially or over time. Example: Fixed or Dynamic."
     default: "Dynamic"
+  mount-if-exists:
+    description: "Supports mounting an existing VHDX located in `drive-path`, avoiding creation overhead."
+    default: "false"
   workspace-copy:
     description: "Copy your GITHUB_WORKSPACE checkout to your Dev Drive. Examples: true, false."
     default: "false"
