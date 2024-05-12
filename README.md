@@ -73,6 +73,9 @@ it creates a shallow copy of your commit to `${{ github.workspace }}`. When `wor
 is set to `true` it will copy your workspace into your dev drive allowing you move your
 workload to be purely on the dev drive.
 
+This option was needed since `actions/checkout` does not allow cloning outside `${{ github.workspace }}`.
+See [actions/checkout#197](https://github.com/actions/checkout/issues/197).
+
 ## Environment Variables
 
 These environment variables are meant to be used along `working-directory` to make sure
