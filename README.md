@@ -18,13 +18,13 @@ this action creates for you.
 Just add the following line to the `steps:` list in your GitHub Actions yaml:
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v1
+- uses: samypr100/setup-dev-drive@v2
 ```
 
 You can optionally pass parameters to the action as follows:
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v1
+- uses: samypr100/setup-dev-drive@v2
   with:
     drive-size: 1GB
     drive-format: ReFS
@@ -59,9 +59,12 @@ otherwise `workspace-copy` can cause issues.
 #### `drive-type`
 
 Determines the type of drive, `Fixed` or `Dynamic`. There are performance tradeoffs between
-both, hence for the purposes of this action `Fixed` is used by default.
+both. For the purposes of this action `Dynamic` is used by default for flexibility.
+
 `Dynamic` is useful when you want to cache the disk across job runs as it yields a smaller
 payload to cache when the job ends.
+
+`Fixed` gives you a notable performance boost, but there's a small creation overhead.
 
 #### `workspace-copy`
 
@@ -90,7 +93,7 @@ your dev drive workspace will be `E:\<project-name>` by default assuming the dri
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: samypr100/setup-dev-drive@v1
+- uses: samypr100/setup-dev-drive@v2
   with:
     workspace-copy: true
 - name: Install Dependencies
@@ -99,7 +102,7 @@ your dev drive workspace will be `E:\<project-name>` by default assuming the dri
 ```
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v1
+- uses: samypr100/setup-dev-drive@v2
 - name: "Install Rust toolchain in dev drive"
   env:
     CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo

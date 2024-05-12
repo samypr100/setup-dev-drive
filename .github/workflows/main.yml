@@ -59,7 +59,7 @@ jobs:
         with:
           drive-size: 2GB
           drive-format: NTFS
-          drive-type: Dynamic
+          drive-type: Fixed
           drive-path: "my_awesome_drive.vhdx"
           workspace-copy: true
 

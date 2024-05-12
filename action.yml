@@ -16,7 +16,7 @@ inputs:
     default: "dev_drive.vhdx"
   drive-type:
     description: "Determines whether all space is allocated initially or over time. Example: Fixed or Dynamic."
-    default: "Fixed"
+    default: "Dynamic"
   workspace-copy:
     description: "Copy your GITHUB_WORKSPACE checkout to your Dev Drive. Examples: true, false."
     default: "false"
