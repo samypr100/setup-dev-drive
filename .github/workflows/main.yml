@@ -59,5 +59,28 @@ jobs:
         with:
           drive-size: 2GB
           drive-format: NTFS
+          drive-type: Dynamic
           drive-path: "my_awesome_drive.vhdx"
           workspace-copy: true
+
+  test-large-fixed:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-size: 10GB
+          drive-type: Fixed
+
+  test-large-dynamic:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-size: 10GB
+          drive-type: Dynamic

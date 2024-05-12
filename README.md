@@ -28,6 +28,7 @@ You can optionally pass parameters to the action as follows:
   with:
     drive-size: 1GB
     drive-format: ReFS
+    drive-type: Fixed
     drive-path: "dev_drive.vhdx"
     workspace-copy: true
 ```
@@ -55,6 +56,12 @@ workspace drive letter.
 When an absolute path is provided, make sure it's located outside `${{ github.workspace }}`
 otherwise `workspace-copy` can cause issues.
 
+#### `drive-type`
+
+Determines the type of drive, `Fixed` or `Dynamic`. There are performance tradeoffs between
+both, hence for the purposes of this action `Fixed` is used by default.
+`Dynamic` is useful when you want to cache the disk across job runs as it yields a smaller
+payload to cache when the job ends.
 
 #### `workspace-copy`
 
@@ -97,7 +104,7 @@ your dev drive workspace will be `E:\<project-name>` by default assuming the dri
   env:
     CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
     RUSTUP_HOME: ${{ env.DEV_DRIVE }}/.rustup
-    run: rustup show
+  run: rustup show
 ```
 
 ## Runner Compatibility
