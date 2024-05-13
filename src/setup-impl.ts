@@ -20,25 +20,10 @@ async function doDevDriveCommand(
   driveType: string,
   mountIfExists: boolean,
 ): Promise<string> {
-  // Normalize User Path Input
-  let normalizedDrivePath = toPlatformPath(drivePath)
-  if (!path.isAbsolute(drivePath)) {
-    normalizedDrivePath = path.resolve('/', normalizedDrivePath)
-  }
-  if (path.extname(normalizedDrivePath) !== VHDX_EXTENSION) {
-    throw new Error(`Make sure ${ExternalInputs.DrivePath} ends with ${VHDX_EXTENSION}`)
-  }
-
-  // Check Drive Type
-  if (!VHDDriveTypes.has(driveType)) {
-    const allowedMsg = [...VHDDriveTypes].join(' or ')
-    throw new Error(`Make sure ${ExternalInputs.DriveType} is either ${allowedMsg}`)
-  }
-
   if (mountIfExists) {
     try {
       // Do a check on the Dev Drive
-      await fs.access(normalizedDrivePath, fs.constants.F_OK | fs.constants.R_OK)
+      await fs.access(drivePath, fs.constants.F_OK | fs.constants.R_OK)
     } catch (e) {
       core.debug((e as NodeJS.ErrnoException).message)
       // Fallback to creation...
@@ -50,27 +35,27 @@ async function doDevDriveCommand(
   let driveLetter
   if (!mountIfExists) {
     core.info('Creating Dev Drive...')
-    driveLetter = await create(driveSize, driveFormat, normalizedDrivePath, driveType)
+    driveLetter = await create(driveSize, driveFormat, drivePath, driveType)
     core.info('Successfully created Dev Drive...')
   } else {
     core.info('Mounting Dev Drive...')
-    driveLetter = await mount(normalizedDrivePath)
+    driveLetter = await mount(drivePath)
     core.info('Successfully mounted Dev Drive...')
   }
 
   core.debug(`Exporting EnvVar ${EnvVariables.DevDrive}=${driveLetter}`)
   core.exportVariable(EnvVariables.DevDrive, driveLetter)
 
-  core.debug(`Exporting EnvVar ${EnvVariables.DevDrivePath}=${normalizedDrivePath}`)
-  core.exportVariable(EnvVariables.DevDrivePath, normalizedDrivePath)
+  core.debug(`Exporting EnvVar ${EnvVariables.DevDrivePath}=${drivePath}`)
+  core.exportVariable(EnvVariables.DevDrivePath, drivePath)
 
-  core.debug(`Saving State ${StateVariables.DevDrivePath}=${normalizedDrivePath}`)
-  core.saveState(StateVariables.DevDrivePath, normalizedDrivePath)
+  core.debug(`Saving State ${StateVariables.DevDrivePath}=${drivePath}`)
+  core.saveState(StateVariables.DevDrivePath, drivePath)
 
   return driveLetter
 }
 
-async function doCopyWorkspace(driveLetter: string) {
+async function doCopyWorkspace(driveLetter: string, drivePath: string) {
   const githubWorkspace = process.env[GithubVariables.GithubWorkspace]
   if (!githubWorkspace) {
     throw new Error(
@@ -80,6 +65,13 @@ async function doCopyWorkspace(driveLetter: string) {
 
   const copyFrom = path.resolve(githubWorkspace)
   const copyTo = path.resolve(driveLetter, path.basename(copyFrom))
+
+  const isDevDriveInWorkspace = drivePath.startsWith(copyFrom)
+  if (isDevDriveInWorkspace) {
+    throw new Error(
+      `Your dev drive is located inside the Github Workspace when ${ExternalInputs.WorkspaceCopy} is enabled! ${drivePath}`,
+    )
+  }
 
   core.info(`Copying workspace from ${copyFrom} to ${copyTo}...`)
   await fs.copy(copyFrom, copyTo)
@@ -101,16 +93,30 @@ export async function setup(
   if (process.platform !== WIN_PLATFORM) {
     throw new Error('This action can only run on windows.')
   }
+  // Normalize User Path Input
+  let normalizedDrivePath = toPlatformPath(drivePath)
+  if (!path.isAbsolute(drivePath)) {
+    normalizedDrivePath = path.resolve('/', normalizedDrivePath)
+  }
+  if (path.extname(normalizedDrivePath) !== VHDX_EXTENSION) {
+    throw new Error(`Make sure ${ExternalInputs.DrivePath} ends with ${VHDX_EXTENSION}`)
+  }
+
+  // Check Drive Type
+  if (!VHDDriveTypes.has(driveType)) {
+    const allowedMsg = [...VHDDriveTypes].join(' or ')
+    throw new Error(`Make sure ${ExternalInputs.DriveType} is either ${allowedMsg}`)
+  }
 
   const driveLetter = await doDevDriveCommand(
     driveSize,
     driveFormat,
-    drivePath,
+    normalizedDrivePath,
     driveType,
     mountIfExists,
   )
 
   if (copyWorkspace) {
-    await doCopyWorkspace(driveLetter)
+    await doCopyWorkspace(driveLetter, normalizedDrivePath)
   }
 }

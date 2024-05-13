@@ -9,6 +9,7 @@
     "sourceMap": true
   },
   "exclude": [
+    "./lib",
     "./dist",
     "./node_modules"
   ]

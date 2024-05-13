@@ -1,3 +1,7 @@
+# 2.1.1
+
+* Added error check when Dev Drive is located inside `${{ github.workspace }}`.
+
 # 2.1.0
 
 * Added input option `mount-if-exists` to allow mounting pre-existing VHDX drives (e.g. from `actions/cache`).

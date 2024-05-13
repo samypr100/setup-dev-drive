@@ -101,6 +101,30 @@ jobs:
         working-directory: ${{ env.DEV_DRIVE }}
         run: New-Item test.txt
 
+  test-copy-inside-workspace:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ windows-2022 ]
+        workspace-copy: [ true, false ]
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        id: setup-drive
+        continue-on-error: true
+        uses: ./
+        with:
+          drive-path: "${{ github.workspace }}/dev_drive.vhdx"
+          workspace-copy: ${{ matrix.workspace-copy }}
+      - name: Fail when `workspace-copy` and failure is not the outcome
+        if: ${{ matrix.workspace-copy && steps.setup-drive.outcome != 'failure' }}
+        run: exit 1
+      - name: Fail when not `workspace-copy` and success is not the outcome
+        if: ${{ !matrix.workspace-copy && steps.setup-drive.outcome != 'success' }}
+        run: exit 1
+
   test-cache-storage:
     runs-on: windows-2022
     steps:
