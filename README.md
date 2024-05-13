@@ -5,8 +5,8 @@
 This action primary aim is to create a [Windows Dev Drive](https://learn.microsoft.com/en-us/windows/dev-drive/)
 on your behalf and expose its location via GitHub Environment Variables.
 
-Dev Drives use `ReFS` under the hood to provide optimizations that are targeted for Developer workflows.
-By using a Dev Drive, you can increase performance significantly on a variety of developer workloads.
+Dev Drives use `ReFS` under the hood to provide optimizations that are targeted for developer workflows.
+By using a dev drive, you can increase performance significantly on a variety of developer workloads.
 
 Workloads that involve high IO, such as building and testing will see an **improvement of about 25%
 or more on average**, which can translate to substantial speed, quota, and cost savings.
@@ -41,7 +41,7 @@ You can optionally pass parameters to the action as follows:
 
 #### `drive-size`
 
-Allows you to configure the Dev Drive size. This is subject to the limit of space
+Allows you to configure the dev drive size. This is subject to the limit of space
 available on your runner. The default public runners roughly hold about 15GB of
 [space](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories),
 so it's suggested you keep your drive size below that limit, or you may encounter errors.
@@ -53,7 +53,7 @@ as provided by [Format-Volume](https://learn.microsoft.com/en-us/powershell/modu
 
 #### `drive-path`
 
-The path to the Dev Drive VHDX file, defaults to the relative path `dev_drive.vhdx`.
+The path to the dev drive VHDX file, defaults to the relative path `dev_drive.vhdx`.
 
 When a relative path is provided, it will be relative to `C:\`, `D:\` or the default
 workspace drive letter on the runner. Hence, `dev_drive.vhdx` will likely resolve to
@@ -74,16 +74,16 @@ payload to cache when the job ends.
 
 #### `mount-if-exists`
 
-Mounts the Dev Drive if it already exists at `drive-path` location. When it does not exist,
+Mounts the dev drive if it already exists at `drive-path` location. When it does not exist,
 it will fall back to creating one at that location instead. This is useful when your workflow
-caches the Dev Drive for further use in other jobs via `actions/cache`.
+caches the dev drive for further use in other jobs via `actions/cache`.
 
 #### `workspace-copy`
 
-This copies `${{ github.workspace }}` to your Dev Drive. Usually when you use `actions/checkout`
+This copies `${{ github.workspace }}` to your dev drive. Usually when you use `actions/checkout`
 it creates a shallow copy of your commit to `${{ github.workspace }}`. When `workspace-copy`
-is set to `true` it will copy your workspace into your dev drive allowing you move your
-workload to be purely on the dev drive.
+is set to `true`, this action will copy your workspace into your dev drive allowing you move
+your workload to be purely on the dev drive.
 
 This option was needed since `actions/checkout` does not allow cloning outside `${{ github.workspace }}`.
 See [actions/checkout#197](https://github.com/actions/checkout/issues/197).
@@ -91,7 +91,7 @@ See [actions/checkout#197](https://github.com/actions/checkout/issues/197).
 ## Environment Variables
 
 These environment variables are meant to be used along `working-directory` to make sure
-your workflow commands are executing relative to your Dev Drive.
+your workflow commands are executing relative to your dev drive.
 
 #### `DEV_DRIVE`
 
@@ -111,8 +111,9 @@ The canonical location of the VHDX file.
 When `drive-path` is set to a relative path like `my_drive.vhdx`
 the location in this variable will likely be `D:\my_drive.vhdx`.
 
-On the other hand, when `drive-path` is set to an absolute path, that will become
-the value this variable will contain after normalization.
+When `drive-path` is set to an absolute path like `D:\path\to\my_drive.vhdx`
+the location in this variable will be the same but normalized as given by
+[path.normalize](https://nodejs.org/api/path.html#pathnormalizepath).
 
 ### Examples
 
@@ -137,11 +138,11 @@ the value this variable will contain after normalization.
 
 ## Runner Compatibility
 
-This action currently only works on Windows runners. In particular, this
+This action currently only works on windows runners. In particular, this
 action will only work with `windows-2022` or `windows-latest` runners.
 
-For Native Dev Drive support, `10.0.22621` build or later of windows is required.
-This action will gracefully still work even if Native Dev Drive is not available.
+For native dev drive support, `10.0.22621` build or later of windows is required.
+This action will gracefully still work even if native dev drive is not available.
 
 On cases where runners may still not be updated to meet the minimum version, you can
 still get speed gains by using this action due to `ReFS` and `VHDX` usage.
