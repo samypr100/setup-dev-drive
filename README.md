@@ -115,25 +115,48 @@ When `drive-path` is set to an absolute path like `D:\path\to\my_drive.vhdx`
 the location in this variable will be the same but normalized as given by
 [path.normalize](https://nodejs.org/api/path.html#pathnormalizepath).
 
-### Examples
+## Examples
+
+#### Setting working directory to use Dev Drive workspace
 
 ```yaml
 - uses: actions/checkout@v4
 - uses: samypr100/setup-dev-drive@v2
   with:
     workspace-copy: true
-- name: Install Dependencies
+- name: Install dependencies in dev drive
   working-directory: ${{ env.DEV_DRIVE_WORKSPACE }}
   run: npm install
 ```
 
+#### Installing software inside Dev Drive root
+
 ```yaml
 - uses: samypr100/setup-dev-drive@v2
-- name: "Install Rust toolchain in dev drive"
+- name: Install rust toolchain in dev drive
   env:
     CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
     RUSTUP_HOME: ${{ env.DEV_DRIVE }}/.rustup
   run: rustup show
+```
+
+#### Caching the Dev Drive
+
+Inspired by [actions/cache#752 (comment)](https://github.com/actions/cache/issues/752#issuecomment-1847036770)
+
+```yaml
+- uses: actions/checkout@v4
+- uses: actions/cache@v4
+  with:
+    path: "C:\\bazel_cache.vhdx"
+    key: bazel-cache-windows
+- uses: samypr100/setup-dev-drive@v2
+  with:
+    drive-path: "C:\\bazel_cache.vhdx"
+    mount-if-exists: true
+- name: Build and test
+  run: bazelisk --output_base=$env:DEV_DRIVE test --config=windows //...
+# ...
 ```
 
 ## Runner Compatibility
