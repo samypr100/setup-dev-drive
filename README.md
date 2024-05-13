@@ -9,7 +9,7 @@ Dev Drives use `ReFS` under the hood to provide optimizations that are targeted 
 By using a Dev Drive, you can increase performance significantly on a variety of developer workloads.
 
 Workloads that involve high IO, such as building and testing will see an **improvement of about 25%
-or more on average**, which can translate substantial to speed, quota, and cost savings.
+or more on average**, which can translate to substantial speed, quota, and cost savings.
 See [related blog post](https://devblogs.microsoft.com/visualstudio/devdrive/).
 
 You can still decide to use something else than `ReFS` and get speed benefits of
