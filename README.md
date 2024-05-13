@@ -53,9 +53,11 @@ as provided by [Format-Volume](https://learn.microsoft.com/en-us/powershell/modu
 
 #### `drive-path`
 
-The path to the Dev Drive VHDX file, by default resolves to `C:\dev_drive.vhdx`.
-Note, when a relative path is provided, it will be relative to `C:\` or the default
-workspace drive letter.
+The path to the Dev Drive VHDX file, defaults to the relative path `dev_drive.vhdx`.
+
+When a relative path is provided, it will be relative to `C:\`, `D:\` or the default
+workspace drive letter on the runner. Hence, `dev_drive.vhdx` will likely resolve to
+`C:\dev_drive.vhdx` or `D:\dev_drive.vhdx`.
 
 When an absolute path is provided, make sure it's located outside `${{ github.workspace }}`
 otherwise `workspace-copy` can cause issues. This action will raise an error in such cases.
@@ -99,7 +101,7 @@ assigned letter is `E`, `${{ env.DEV_DRIVE }}` will contain `E:`.
 #### `DEV_DRIVE_WORKSPACE`
 
 When `workspace-copy` is set to true, this contains the workspace location as represented
-by the dev drive location. For example if your GitHub workspace is `C:\a\<project-name>\<project-name>`
+by the dev drive location. For example if your GitHub workspace is `D:\a\<project-name>\<project-name>`
 your dev drive workspace will be `E:\<project-name>` by default assuming the drive letter is `E`.
 
 #### `DEV_DRIVE_PATH`
@@ -107,10 +109,10 @@ your dev drive workspace will be `E:\<project-name>` by default assuming the dri
 The canonical location of the VHDX file.
 
 When `drive-path` is set to a relative path like `my_drive.vhdx`
-the location in this variable will likely be `C:\my_drive.vhdx`.
+the location in this variable will likely be `D:\my_drive.vhdx`.
 
-On the other hand, when `drive-path` is set to an absolute path,
-that's likely what this variable will contain after normalization.
+On the other hand, when `drive-path` is set to an absolute path, that will become
+the value this variable will contain after normalization.
 
 ### Examples
 
