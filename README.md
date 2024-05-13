@@ -37,6 +37,10 @@ You can optionally pass parameters to the action as follows:
     workspace-copy: false
 ```
 
+This action is [compatible](#runner-compatibility) with `windows-2022` runners or above.
+
+For more examples, take a look in the dedicated [examples section](#examples).
+
 ## Configuration
 
 #### `drive-size`
