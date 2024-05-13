@@ -31,10 +31,10 @@ You can optionally pass parameters to the action as follows:
   with:
     drive-size: 1GB
     drive-format: ReFS
-    drive-type: Fixed
+    drive-type: Dynamic
     drive-path: "dev_drive.vhdx"
     mount-if-exists: false
-    workspace-copy: true
+    workspace-copy: false
 ```
 
 ## Configuration
