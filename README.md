@@ -55,7 +55,7 @@ Note, when a relative path is provided, it will be relative to `C:\` or the defa
 workspace drive letter.
 
 When an absolute path is provided, make sure it's located outside `${{ github.workspace }}`
-otherwise `workspace-copy` can cause issues.
+otherwise `workspace-copy` can cause issues. This action will raise an error in such cases.
 
 #### `drive-type`
 
@@ -144,4 +144,4 @@ still get speed gains by using this action due to `ReFS` and `VHDX` usage.
 
 ## Credits
 
-Thanks to Paco Sevilla for the idea to use a VHDX within a Github Workflow.
+Thanks to Paco Sevilla for the idea to use a VHDX within a GitHub Workflow.
