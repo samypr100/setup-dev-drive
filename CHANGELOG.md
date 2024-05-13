@@ -1,3 +1,7 @@
+# 2.1.2
+
+* Documentation improvements.
+
 # 2.1.1
 
 * Added error check when Dev Drive is located inside `${{ github.workspace }}`.
@@ -16,4 +20,4 @@
 
 # 1.0.0
 
-* Initial Release
+* Initial Release.
