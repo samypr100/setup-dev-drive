@@ -4,7 +4,7 @@
 
 # 2.1.1
 
-* Added error check when Dev Drive is located inside `${{ github.workspace }}`.
+* Added error check when Dev Drive is located inside `${{ github.workspace }}` when `workspace-copy` is set.
 
 # 2.1.0
 
