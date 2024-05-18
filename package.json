@@ -6,9 +6,9 @@
   "main": "lib/setup-dev-drive.js",
   "scripts": {
     "build": "tsc",
-    "bundle": "npm run bundle:main && npm run bundle:cleanup",
-    "bundle:main": "ncc build -m -o dist/main lib/setup-dev-drive.js && mv dist/main/index.js dist/main.js",
-    "bundle:cleanup": "ncc build -m -o dist/post lib/cleanup-dev-drive.js && mv dist/post/index.js dist/post.js",
+    "bundle": "npm run bundle:setup && npm run bundle:cleanup",
+    "bundle:setup": "ncc build -m -o dist/setup lib/setup-dev-drive.js",
+    "bundle:cleanup": "ncc build -m -o dist/cleanup lib/cleanup-dev-drive.js",
     "lint": "eslint .",
     "fmt": "prettier --write src/**/*.ts",
     "fmt-check": "prettier --check src/**/*.ts",
