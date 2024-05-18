@@ -157,6 +157,7 @@ Inspired by [actions/cache#752 (comment)](https://github.com/actions/cache/issue
 - uses: samypr100/setup-dev-drive@v2
   with:
     drive-path: "C:\\bazel_cache.vhdx"
+    drive-format: NTFS
     mount-if-exists: true
 - name: Build and test
   run: bazelisk --output_base=$env:DEV_DRIVE test --config=windows //...
