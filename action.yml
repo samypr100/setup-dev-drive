@@ -1,9 +1,6 @@
 name: "Setup Dev Drive"
 description: "A GitHub Action to setup a Windows Dev Drive."
 author: "samypr100"
-branding:
-  icon: hard-drive
-  color: purple
 inputs:
   drive-size:
     description: "Drive Size. Examples: 1GB, 3GB, 10GB."
@@ -25,5 +22,8 @@ inputs:
     default: "false"
 runs:
   using: "node20"
-  main: "dist/main.js"
+  main: "dist/setup/index.js"
   post: "dist/post.js"
+branding:
+  icon: hard-drive
+  color: purple
