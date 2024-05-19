@@ -1,3 +1,9 @@
+# 2.2.0
+
+* Improved error handling feedback.
+* Additional CI tests.
+* More Badges.
+
 # 2.1.2
 
 * Documentation improvements.
