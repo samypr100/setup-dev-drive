@@ -1,6 +1,16 @@
 [![GitHub Actions][github-actions-badge]](https://github.com/samypr100/setup-dev-drive/actions/workflows/main.yml)
+[![Release][release-badge]](https://github.com/samypr100/setup-dev-drive/releases)
+[![Marketplace][marketplace-badge]](https://github.com/marketplace/actions/setup-dev-drive)
+[![License][license-badge]](https://github.com/samypr100/setup-dev-drive/blob/main/LICENSE)
+[![Language][typescript-badge]](https://www.typescriptlang.org)
+[![OS][windows-badge]](https://learn.microsoft.com/en-us/windows/dev-drive)
 
 [github-actions-badge]: https://github.com/samypr100/setup-dev-drive/actions/workflows/main.yml/badge.svg
+[release-badge]: https://img.shields.io/github/release/samypr100/setup-dev-drive.svg
+[marketplace-badge]: https://img.shields.io/badge/setup--dev--drive-100000?&label=Marketplace&logo=github
+[license-badge]: https://img.shields.io/github/license/samypr100/setup-dev-drive.svg
+[typescript-badge]: https://img.shields.io/badge/TypeScript-3178c6?&logo=typescript&logoColor=white
+[windows-badge]: https://img.shields.io/badge/Windows%20Only-08a1f7?&logo=windows
 
 This action primary aim is to create a [Windows Dev Drive](https://learn.microsoft.com/en-us/windows/dev-drive/)
 on your behalf and expose its location via GitHub Environment Variables.
