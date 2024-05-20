@@ -4,7 +4,8 @@ import { dismount } from './vhd-commands'
 
 export async function cleanup(): Promise<void> {
   if (process.platform !== WIN_PLATFORM) {
-    throw new Error('This action can only run on windows.')
+    core.info('This action can only run on Windows.')
+    return
   }
 
   core.info('Attempting to remove Dev Drive...')
