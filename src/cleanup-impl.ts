@@ -8,11 +8,14 @@ export async function cleanup(): Promise<void> {
     return
   }
 
-  core.info('Attempting to remove Dev Drive...')
+  core.info('Attempting to remove Dev Drive.')
+
+  const mountedPath = core.getState(StateVariables.DevDrive)
+  core.debug(`Retrieved State ${StateVariables.DevDrive}=${mountedPath}`)
 
   const drivePath = core.getState(StateVariables.DevDrivePath)
   core.debug(`Retrieved State ${StateVariables.DevDrivePath}=${drivePath}`)
 
-  const ret = await dismount(drivePath)
-  core.info(`Removal completed with exit code ${ret}...`)
+  const ret = await dismount(drivePath, mountedPath)
+  core.info(`Removal finished with exit code ${ret}.`)
 }

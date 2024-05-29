@@ -61,6 +61,7 @@ jobs:
           drive-format: NTFS
           drive-type: Fixed
           drive-path: "my_awesome_drive.vhdx"
+          mount-path: ""
           mount-if-exists: false
           workspace-copy: true
 
@@ -69,6 +70,7 @@ jobs:
       fail-fast: false
       matrix:
         drive-format: [ FAT, FAT32, exFAT, NTFS, ReFS ]
+        with-mount-path: [ true, false ]
     runs-on: windows-2022
     steps:
       - name: Check out source code
@@ -77,23 +79,32 @@ jobs:
         uses: ./
         with:
           drive-format: ${{ matrix.drive-format }}
+          # This should fall back to Drive Letter on unsupported drive formats.
+          mount-path: ${{ matrix.with-mount-path && 'mount' || '' }}
 
   test-large-size:
     strategy:
       fail-fast: false
       matrix:
         drive-type: [ Fixed, Dynamic ]
+        with-mount-path: [ true, false ]
     runs-on: windows-2022
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
       - name: Setup Dev Drive
+        id: setup-drive
         uses: ./
         with:
           drive-size: 10GB
           drive-type: ${{ matrix.drive-type }}
+          mount-path: ${{ matrix.with-mount-path && 'mount' || '' }}
 
-  test-drive-path-with-spaces:
+  test-paths-with-spaces:
+    strategy:
+      fail-fast: false
+      matrix:
+        with-mount-path: [ true, false ]
     runs-on: windows-2022
     steps:
       - name: Check out source code
@@ -104,17 +115,65 @@ jobs:
           drive-size: 50MB
           drive-format: NTFS
           drive-path: "path/to/my/dev drive with spaces.vhdx"
+          mount-path: ${{ matrix.with-mount-path && 'my mount/location/with spaces' || '' }}
       - name: Write File to Dev Drive
         working-directory: ${{ env.DEV_DRIVE }}
         run: New-Item test.txt
 
-  test-copy-inside-workspace:
+  test-mount-path:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: [ windows-2022 ]
+        is-relative: [ true, false ]
+        drive-format: [ ReFS, NTFS ]
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          drive-format: ${{ matrix.drive-format }}
+          mount-path: ${{ matrix.is-relative && 'mount' || format('{0}/mount', github.workspace) }}
+      - name: Write File to Dev Drive
+        working-directory: ${{ env.DEV_DRIVE }}
+        run: |
+          New-Item test.txt
+
+  test-workspace-copy:
+    strategy:
+      fail-fast: false
+      matrix:
+        with-mount-path: [ true, false ]
+        workspace-copy: [ true ]
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        id: setup-drive
+        uses: ./
+        with:
+          mount-path: ${{ matrix.with-mount-path && format('{0}/../mount', github.workspace) || '' }}
+          workspace-copy: ${{ matrix.workspace-copy }}
+      - name: Check workspace was copied
+        working-directory: ${{ env.DEV_DRIVE_WORKSPACE }}
+        run: |
+          Get-ChildItem -Force
+          if (-not $env:DEV_DRIVE_WORKSPACE) {
+            exit 1
+          }
+          if (-not (Test-Path -Path action.yml -PathType Leaf)) {
+            exit 1
+          }
+
+  test-workspace-copy-edge-cases:
+    strategy:
+      fail-fast: false
+      matrix:
+        with-mount-path: [ true, false ]
         workspace-copy: [ true, false ]
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: windows-2022
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -124,12 +183,42 @@ jobs:
         uses: ./
         with:
           drive-path: "${{ github.workspace }}/dev_drive.vhdx"
+          mount-path: ${{ matrix.with-mount-path && format('{0}/mount', github.workspace) || '' }}
           workspace-copy: ${{ matrix.workspace-copy }}
-      - name: Fail when `workspace-copy` and failure is not the outcome
-        if: ${{ matrix.workspace-copy && steps.setup-drive.outcome != 'failure' }}
+      # Dev Drive Location
+      - name: Check dev drive is inside GitHub workspace
+        run: |
+          Get-ChildItem -Force
+          if (-not (Test-Path -Path dev_drive.vhdx -PathType Leaf)) {
+            exit 1
+          }
+      - name: Check workspace was copied, filtering the dev drive
+        if: ${{ !matrix.with-mount-path && matrix.workspace-copy }}
+        working-directory: ${{ env.DEV_DRIVE_WORKSPACE }}
+        run: |
+          Get-ChildItem -Force
+          if (-not $env:DEV_DRIVE_WORKSPACE) {
+            exit 1
+          }
+          if (Test-Path -Path dev_drive.vhdx -PathType Leaf) {
+            exit 1
+          }
+          if (-not (Test-Path -Path action.yml -PathType Leaf)) {
+            exit 1
+          }
+      # Drive Letter (with Dev Drive inside workspace)
+      - name: Fail when `workspace-copy` and success is not the outcome when drive letter is being used
+        if: ${{ !matrix.with-mount-path && matrix.workspace-copy && steps.setup-drive.outcome != 'success' }}
         run: exit 1
-      - name: Fail when not `workspace-copy` and success is not the outcome
-        if: ${{ !matrix.workspace-copy && steps.setup-drive.outcome != 'success' }}
+      - name: Fail when not `workspace-copy` and success is not the outcome when drive letter is being used
+        if: ${{ !matrix.with-mount-path && !matrix.workspace-copy && steps.setup-drive.outcome != 'success' }}
+        run: exit 1
+      # Mount Path (with mount inside workspace)
+      - name: Fail when `workspace-copy` and failure is not the outcome when mount path is inside workspace
+        if: ${{ matrix.with-mount-path && matrix.workspace-copy && steps.setup-drive.outcome != 'failure' }}
+        run: exit 1
+      - name: Fail when not `workspace-copy` and success is not the outcome when mount path inside workspace
+        if: ${{ matrix.with-mount-path && !matrix.workspace-copy && steps.setup-drive.outcome != 'success' }}
         run: exit 1
 
   test-unsupported-os:
@@ -154,6 +243,10 @@ jobs:
         run: exit 1
 
   test-cache-storage:
+    strategy:
+      fail-fast: false
+      matrix:
+        with-mount-path: [ true, false ]
     runs-on: windows-2022
     steps:
       - name: Check out source code
@@ -164,9 +257,11 @@ jobs:
           drive-size: 50MB
           drive-format: NTFS
           drive-path: "my_cached_drive.vhdx"
+          mount-path: ${{ matrix.with-mount-path && format('{0}/mount', github.workspace) || '' }}
           mount-if-exists: true
       - name: Write File to Dev Drive
         working-directory: ${{ env.DEV_DRIVE }}
+        # Dismount so we can always force-cache the disk via actions/cache/save
         run: |
           New-Item test.txt
           Dismount-VHD -Path ${{ env.DEV_DRIVE_PATH }}
@@ -174,11 +269,15 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ env.DEV_DRIVE_PATH }}
-          key: test-cache-${{ github.run_id }}
+          key: ${{ matrix.with-mount-path && format('test-cache-mount-path-{0}', github.run_id) || format('test-cache-drive-letter-{0}', github.run_id) }}
     outputs:
       dev-drive-path: ${{ env.DEV_DRIVE_PATH }}
 
   test-cache-retrieval:
+    strategy:
+      fail-fast: false
+      matrix:
+        with-mount-path: [ true, false ]
     runs-on: windows-2022
     needs: [test-cache-storage]
     steps:
@@ -188,13 +287,18 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ needs.test-cache-storage.outputs.dev-drive-path }}
-          key: test-cache-${{ github.run_id }}
+          key: ${{ matrix.with-mount-path && format('test-cache-mount-path-{0}', github.run_id) || format('test-cache-drive-letter-{0}', github.run_id) }}
           fail-on-cache-miss: true
       - name: Setup Dev Drive
         uses: ./
         with:
           drive-path: "my_cached_drive.vhdx"
+          mount-path: ${{ matrix.with-mount-path && format('{0}/mount', github.workspace) || '' }}
           mount-if-exists: true
       - name: Check File in Dev Drive
         working-directory: ${{ env.DEV_DRIVE }}
-        run: Test-Path test.txt -PathType Leaf
+        run: |
+          Get-ChildItem -Force
+          if (-not (Test-Path -Path test.txt -PathType Leaf)) {
+            exit 1
+          }

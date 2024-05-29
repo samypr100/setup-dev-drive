@@ -6,6 +6,7 @@ import {
   EnvVariables,
   ExternalInputs,
   GithubVariables,
+  MountPathDriveFormats,
   StateVariables,
   VHDDriveTypes,
   VHDX_EXTENSION,
@@ -18,6 +19,7 @@ async function doDevDriveCommand(
   driveFormat: string,
   drivePath: string,
   driveType: string,
+  mountPath: string,
   mountIfExists: boolean,
 ): Promise<string> {
   if (mountIfExists) {
@@ -28,23 +30,26 @@ async function doDevDriveCommand(
       core.debug((e as NodeJS.ErrnoException).message)
       // Fallback to creation...
       mountIfExists = false
-      core.info('Dev Drive did not exist, will create instead...')
+      core.warning('Dev Drive did not exist, will create instead.')
     }
   }
 
-  let driveLetter
+  let mountedPath
   if (!mountIfExists) {
-    core.info('Creating Dev Drive...')
-    driveLetter = await create(driveSize, driveFormat, drivePath, driveType)
-    core.info('Successfully created Dev Drive...')
+    core.info('Creating Dev Drive.')
+    mountedPath = await create(driveSize, driveFormat, drivePath, driveType, mountPath)
+    core.info('Successfully created Dev Drive.')
   } else {
-    core.info('Mounting Dev Drive...')
-    driveLetter = await mount(drivePath)
-    core.info('Successfully mounted Dev Drive...')
+    core.info('Mounting Dev Drive.')
+    mountedPath = await mount(drivePath, mountPath)
+    core.info('Successfully mounted Dev Drive.')
   }
 
-  core.debug(`Exporting EnvVar ${EnvVariables.DevDrive}=${driveLetter}`)
-  core.exportVariable(EnvVariables.DevDrive, driveLetter)
+  core.debug(`Exporting EnvVar ${EnvVariables.DevDrive}=${mountedPath}`)
+  core.exportVariable(EnvVariables.DevDrive, mountedPath)
+
+  core.debug(`Saving State ${StateVariables.DevDrive}=${mountedPath}`)
+  core.saveState(StateVariables.DevDrive, mountedPath)
 
   core.debug(`Exporting EnvVar ${EnvVariables.DevDrivePath}=${drivePath}`)
   core.exportVariable(EnvVariables.DevDrivePath, drivePath)
@@ -52,34 +57,44 @@ async function doDevDriveCommand(
   core.debug(`Saving State ${StateVariables.DevDrivePath}=${drivePath}`)
   core.saveState(StateVariables.DevDrivePath, drivePath)
 
-  return driveLetter
+  return mountedPath
 }
 
-async function doCopyWorkspace(driveLetter: string, drivePath: string) {
+async function doCopyWorkspace(mountedPath: string, drivePath: string) {
   const githubWorkspace = process.env[GithubVariables.GithubWorkspace]
   if (!githubWorkspace) {
-    throw new Error(
-      'Github Workspace does not exist! Make sure to run `actions/checkout` first.',
-    )
+    throw new Error('Github Workspace does not exist!')
   }
 
   const copyFrom = path.resolve(githubWorkspace)
-  const copyTo = path.resolve(driveLetter, path.basename(copyFrom))
+  const copyTo = path.resolve(mountedPath, path.basename(copyFrom))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const filterFunc = (src: string, dst: string) => src !== drivePath
 
-  const isDevDriveInWorkspace = drivePath.startsWith(copyFrom)
-  if (isDevDriveInWorkspace) {
+  // Check whether Copy-To is a child of Copy-From
+  const relativePath = path.relative(copyFrom, copyTo)
+  const isValidDest = relativePath.startsWith('..') || path.isAbsolute(relativePath)
+  if (!isValidDest) {
     throw new Error(
-      `Your dev drive is located inside the Github Workspace when ${ExternalInputs.WorkspaceCopy} is enabled! ${drivePath}`,
+      `Cannot copy '${copyFrom}' to a (sub)directory of itself, '${copyTo}'.`,
     )
   }
 
-  core.info(`Copying workspace from ${copyFrom} to ${copyTo}...`)
-  await fs.copy(copyFrom, copyTo)
+  // Check Dev Drive is inside the directory we're about to copy
+  const isDevDriveInWorkspace = drivePath.startsWith(copyFrom)
+  if (isDevDriveInWorkspace) {
+    core.warning(
+      `Your dev drive '${drivePath}' is located inside the Github Workspace when ${ExternalInputs.WorkspaceCopy} is enabled! Your drive will be filtered out during copying.`,
+    )
+  }
+
+  core.info(`Copying workspace from '${copyFrom}' to '${copyTo}'.`)
+  await fs.copy(copyFrom, copyTo, { filter: filterFunc })
 
   core.debug(`Exporting EnvVar ${EnvVariables.DevDriveWorkspace}=${copyTo}`)
   core.exportVariable(EnvVariables.DevDriveWorkspace, copyTo)
 
-  core.info('Finished copying workspace...')
+  core.info('Finished copying workspace.')
 }
 
 export async function setup(
@@ -87,6 +102,7 @@ export async function setup(
   driveFormat: string,
   drivePath: string,
   driveType: string,
+  mountPath: string,
   mountIfExists: boolean,
   copyWorkspace: boolean,
 ): Promise<void> {
@@ -94,13 +110,42 @@ export async function setup(
     core.info('This action can only run on Windows.')
     return
   }
-  // Normalize User Path Input
+
+  // Normalize Drive Path Input
   let normalizedDrivePath = toPlatformPath(drivePath)
   if (!path.isAbsolute(drivePath)) {
+    // Default is relative to CWD root
     normalizedDrivePath = path.resolve('/', normalizedDrivePath)
   }
   if (path.extname(normalizedDrivePath) !== VHDX_EXTENSION) {
     throw new Error(`Make sure ${ExternalInputs.DrivePath} ends with ${VHDX_EXTENSION}`)
+  }
+
+  // Normalize Mount Path Input
+  let normalizedMountPath = toPlatformPath(mountPath)
+  if (mountPath) {
+    // Check Drive Type
+    if (MountPathDriveFormats.has(driveFormat)) {
+      // Default is relative to CWD (when it's not absolute)
+      normalizedMountPath = path.resolve(normalizedMountPath)
+    } else {
+      normalizedMountPath = ''
+      const allowedMsg = [...MountPathDriveFormats].join(' or ')
+      core.warning(
+        `${ExternalInputs.DriveFormat}=${driveFormat} must be either ${allowedMsg} when ${ExternalInputs.MountPath} is specified. Using Drive Letter instead.`,
+      )
+    }
+  }
+  if (normalizedMountPath) {
+    try {
+      // Make sure the directory exists
+      await fs.mkdir(normalizedMountPath, { recursive: true })
+    } catch (e) {
+      const errMsg = (e as NodeJS.ErrnoException).message
+      throw new Error(
+        `Failed to create specified mount path '${normalizedMountPath}' due to ${errMsg}.`,
+      )
+    }
   }
 
   // Check Drive Type
@@ -109,15 +154,16 @@ export async function setup(
     throw new Error(`Make sure ${ExternalInputs.DriveType} is either ${allowedMsg}`)
   }
 
-  const driveLetter = await doDevDriveCommand(
+  const mountedPath = await doDevDriveCommand(
     driveSize,
     driveFormat,
     normalizedDrivePath,
     driveType,
+    normalizedMountPath,
     mountIfExists,
   )
 
   if (copyWorkspace) {
-    await doCopyWorkspace(driveLetter, normalizedDrivePath)
+    await doCopyWorkspace(mountedPath, normalizedDrivePath)
   }
 }
