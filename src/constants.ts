@@ -3,6 +3,7 @@ export enum ExternalInputs {
   DriveFormat = 'drive-format',
   DrivePath = 'drive-path',
   DriveType = 'drive-type',
+  MountPath = 'mount-path',
   MountIfExists = 'mount-if-exists',
   WorkspaceCopy = 'workspace-copy',
 }
@@ -14,12 +15,15 @@ export enum EnvVariables {
 }
 
 export enum StateVariables {
+  DevDrive = EnvVariables.DevDrive,
   DevDrivePath = EnvVariables.DevDrivePath,
 }
 
 export enum GithubVariables {
   GithubWorkspace = 'GITHUB_WORKSPACE',
 }
+
+export const MountPathDriveFormats = new Set(['ReFS', 'NTFS'])
 
 export const VHDDriveTypes = new Set(['Fixed', 'Dynamic'])
 
@@ -30,3 +34,5 @@ export const POWERSHELL_BIN = 'pwsh.exe'
 export const WIN_PLATFORM = 'win32'
 
 export const VHDX_EXTENSION = '.vhdx'
+
+export const DRIVE_LETTER_RE = /^[A-Za-z]:$/

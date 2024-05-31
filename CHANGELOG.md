@@ -1,3 +1,10 @@
+# 3.0.0
+
+* Allow mounting dev drive in specified mount path (ReFS, NTFS only).
+* Workspace copying is no longer restricted by the Dev Drive location.
+* Paths in output env vars are no longer escaped `\\`.
+* Cleaner error messages.
+
 # 2.2.0
 
 * Improved error handling feedback.

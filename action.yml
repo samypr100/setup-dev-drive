@@ -14,6 +14,9 @@ inputs:
   drive-type:
     description: "Determines whether all space is allocated initially or over time. Example: Fixed or Dynamic."
     default: "Dynamic"
+  mount-path:
+    description: "Specific mount location for the Dev Drive. Only compatible with NTFS or ReFS."
+    required: false
   mount-if-exists:
     description: "Supports mounting an existing VHDX located in `drive-path`, avoiding creation overhead."
     default: "false"

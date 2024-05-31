@@ -7,6 +7,7 @@ async function main() {
   const driveFormat = core.getInput(ExternalInputs.DriveFormat)
   const drivePath = core.getInput(ExternalInputs.DrivePath)
   const driveType = core.getInput(ExternalInputs.DriveType)
+  const mountPath = core.getInput(ExternalInputs.MountPath)
   const mountIfExists = core.getBooleanInput(ExternalInputs.MountIfExists)
   const copyWorkspace = core.getBooleanInput(ExternalInputs.WorkspaceCopy)
   await setup(
@@ -14,6 +15,7 @@ async function main() {
     driveFormat,
     drivePath,
     driveType,
+    mountPath,
     mountIfExists,
     copyWorkspace,
   )

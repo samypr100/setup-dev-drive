@@ -31,13 +31,13 @@ this action creates for you.
 Just add the following line to the `steps:` list in your GitHub Actions yaml:
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v2
+- uses: samypr100/setup-dev-drive@v3
 ```
 
 You can optionally pass parameters to the action as follows:
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v2
+- uses: samypr100/setup-dev-drive@v3
   with:
     drive-size: 1GB
     drive-format: ReFS
@@ -74,7 +74,8 @@ workspace drive letter on the runner. Hence, `dev_drive.vhdx` will likely resolv
 `C:\dev_drive.vhdx` or `D:\dev_drive.vhdx`.
 
 When an absolute path is provided, make sure it's located outside `${{ github.workspace }}`
-otherwise `workspace-copy` can cause issues. This action will raise an error in such cases.
+otherwise `workspace-copy` will issue a warning. This action will ignore copying the dev drive
+in such scenarios.
 
 #### `drive-type`
 
@@ -85,6 +86,15 @@ both. For the purposes of this action `Dynamic` is used by default for flexibili
 payload to cache when the job ends.
 
 `Fixed` gives you a notable performance boost, but there's a small creation overhead.
+
+#### `mount-path`
+
+Mounts the dev drive at the specified `mount-path` location. This option is primarily
+useful when you want to mount your dev drive inside the GitHub workspace via
+`${{ github.workspace }}/my_mount_path` or equivalent.
+
+Note, This is only supported by `NTFS` or `ReFS` drive formats, when using other formats
+it will fall back to a drive letter instead.
 
 #### `mount-if-exists`
 
@@ -102,6 +112,9 @@ your workload to be purely on the dev drive.
 This option was needed since `actions/checkout` does not allow cloning outside `${{ github.workspace }}`.
 See [actions/checkout#197](https://github.com/actions/checkout/issues/197).
 
+This option is compatible with `mount-path` as long as the mount path is not directly located inside your
+GitHub workspace (e.g. `${{ github.workspace }}/../my_mount_path`).
+
 ## Environment Variables
 
 These environment variables are meant to be used along `working-directory` to make sure
@@ -109,14 +122,24 @@ your workflow commands are executing relative to your dev drive.
 
 #### `DEV_DRIVE`
 
-Contains the path to your dev drive of the form `<DRIVE_LETTER>:`. For example if the dev drive
-assigned letter is `E`, `${{ env.DEV_DRIVE }}` will contain `E:`.
+Contains the path to your dev drive of the form `<DRIVE_LETTER>:` or the canonical `mount-path`.
+For example, if the dev drive assigned letter is `E`, `${{ env.DEV_DRIVE }}` will contain `E:`.
+Consequently, if your dev drive canonical mount path is `D:\a\path\to\mount`, that will be the
+value of the env var.
+
+This env var is always set.
 
 #### `DEV_DRIVE_WORKSPACE`
 
 When `workspace-copy` is set to true, this contains the workspace location as represented
 by the dev drive location. For example if your GitHub workspace is `D:\a\<project-name>\<project-name>`
 your dev drive workspace will be `E:\<project-name>` by default assuming the drive letter is `E`.
+
+When `mount-path` is set, this behaves the same as described above with the caveat that the `mount-path`
+location must be outside your GitHub workspace (e.g. `${{ github.workspace }}/../my_mount_path`).
+
+This env var is only set **if-only-if** `workspace-copy` option is set. Otherwise, it's expected that
+you'd use `DEV_DRIVE` env var instead.
 
 #### `DEV_DRIVE_PATH`
 
@@ -129,13 +152,15 @@ When `drive-path` is set to an absolute path like `D:\path\to\my_drive.vhdx`
 the location in this variable will be the same but normalized as given by
 [path.normalize](https://nodejs.org/api/path.html#pathnormalizepath).
 
+This env var is always set.
+
 ## Examples
 
 #### Setting working directory to use Dev Drive workspace
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: samypr100/setup-dev-drive@v2
+- uses: samypr100/setup-dev-drive@v3
   with:
     workspace-copy: true
 - name: Install dependencies in dev drive
@@ -146,7 +171,7 @@ the location in this variable will be the same but normalized as given by
 #### Installing software inside Dev Drive root
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v2
+- uses: samypr100/setup-dev-drive@v3
 - name: Install rust toolchain in dev drive
   env:
     CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
@@ -164,7 +189,7 @@ Inspired by [actions/cache#752 (comment)](https://github.com/actions/cache/issue
   with:
     path: "C:\\bazel_cache.vhdx"
     key: bazel-cache-windows
-- uses: samypr100/setup-dev-drive@v2
+- uses: samypr100/setup-dev-drive@v3
   with:
     drive-path: "C:\\bazel_cache.vhdx"
     drive-format: NTFS
