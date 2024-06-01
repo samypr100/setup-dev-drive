@@ -43,6 +43,7 @@ You can optionally pass parameters to the action as follows:
     drive-format: ReFS
     drive-type: Dynamic
     drive-path: "dev_drive.vhdx"
+    mount-path: "my_mount_path"
     mount-if-exists: false
     workspace-copy: false
 ```
@@ -91,10 +92,20 @@ payload to cache when the job ends.
 
 Mounts the dev drive at the specified `mount-path` location. This option is primarily
 useful when you want to mount your dev drive inside the GitHub workspace via
-`${{ github.workspace }}/my_mount_path` or equivalent.
+`${{ github.workspace }}/my_mount_path`, `my_mount_path`, or equivalent.
 
 Note, This is only supported by `NTFS` or `ReFS` drive formats, when using other formats
-it will fall back to a drive letter instead.
+it will fall back to a drive letter instead. Also, when a relative path is specified it
+will configure the mount to be relative to your working directory.
+
+**Warning** Setting `mount-path` to exactly `${{ github.workspace }}` and then running
+`actions/checkout` will try to wipe your mount folder, causing an error that looks like
+`File was unable to be removed Error: EPERM: operation not permitted, lstat '${{ github.workspace }}\System Volume Information'`
+See [actions/checkout#430](https://github.com/actions/checkout/issues/430).
+
+In such cases, it is recommended you run `actions/checkout` before this action and
+set your mount path outside `${{ github.workspace }}`, that way you can leverage
+the option `workspace-copy: true` to copy your contents.
 
 #### `mount-if-exists`
 
