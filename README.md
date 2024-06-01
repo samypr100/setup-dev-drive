@@ -94,18 +94,19 @@ Mounts the dev drive at the specified `mount-path` location. This option is prim
 useful when you want to mount your dev drive inside the GitHub workspace via
 `${{ github.workspace }}/my_mount_path`, `my_mount_path`, or equivalent.
 
-Note, This is only supported by `NTFS` or `ReFS` drive formats, when using other formats
+Note, this is only supported by `NTFS` or `ReFS` drive formats, when using other formats
 it will fall back to a drive letter instead. Also, when a relative path is specified it
 will configure the mount to be relative to your working directory.
 
-**Warning** Setting `mount-path` to exactly `${{ github.workspace }}` and then running
+**Warning**: Setting `mount-path` to exactly `${{ github.workspace }}` and then running
 `actions/checkout` will try to wipe your mount folder, causing an error that looks like
 `File was unable to be removed Error: EPERM: operation not permitted, lstat '${{ github.workspace }}\System Volume Information'`
-See [actions/checkout#430](https://github.com/actions/checkout/issues/430).
+See [actions/checkout#430](https://github.com/actions/checkout/issues/430) for more details
+on this non-configurable behavior by `actions/checkout`.
 
-In such cases, it is recommended you run `actions/checkout` before this action and
-set your mount path outside `${{ github.workspace }}`, that way you can leverage
-the option `workspace-copy: true` to copy your contents.
+In such cases, it is recommended you run `actions/checkout` before this action.
+You can also leverage `workspace-copy: true` to copy your contents as long as
+your mount path is outside `${{ github.workspace }}`.
 
 #### `mount-if-exists`
 
