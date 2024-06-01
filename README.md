@@ -97,7 +97,7 @@ useful when you want to mount your dev drive inside the GitHub workspace via
 `${{ github.workspace }}/my_mount_path`, `my_mount_path`, or equivalent.
 
 This option is only supported when using the `NTFS` or `ReFS` drive formats, otherwise
-it will fall back to a drive letter instead. Lastly, when a relative path is specified
+it will fall back to a drive letter instead. Furthermore, when a relative path is specified
 it the mount path will end up being relative to your current working directory.
 
 **Warning**: Setting `mount-path` to exactly `${{ github.workspace }}` and then running
