@@ -54,19 +54,19 @@ For more examples, take a look in the dedicated [examples section](#examples).
 
 ## Configuration
 
-#### `drive-size`
+### *drive-size*
 
 Allows you to configure the dev drive size. This is subject to the limit of space
 available on your runner. The default public runners roughly hold about 15GB of
 [space](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories),
 so it's suggested you keep your drive size below that limit, or you may encounter errors.
 
-#### `drive-format`
+### *drive-format*
 
 The format of the drive, by default `ReFS` but it can be any of `FAT, FAT32, exFAT, NTFS, ReFS`
 as provided by [Format-Volume](https://learn.microsoft.com/en-us/powershell/module/storage/format-volume).
 
-#### `drive-path`
+### *drive-path*
 
 The path to the dev drive VHDX file, defaults to the relative path `dev_drive.vhdx`.
 
@@ -78,7 +78,7 @@ When an absolute path is provided, make sure it's located outside `${{ github.wo
 otherwise `workspace-copy` will issue a warning. This action will ignore copying the dev drive
 in such scenarios.
 
-#### `drive-type`
+### *drive-type*
 
 Determines the type of drive, `Fixed` or `Dynamic`. There are performance tradeoffs between
 both. For the purposes of this action `Dynamic` is used by default for flexibility.
@@ -88,15 +88,17 @@ payload to cache when the job ends.
 
 `Fixed` gives you a notable performance boost, but there's a small creation overhead.
 
-#### `mount-path`
+### *mount-path*
 
-Mounts the dev drive at the specified `mount-path` location. This option is primarily
+By default, this option is not set.
+
+Mounts the dev drive at the specified `mount-path` location. This option can be
 useful when you want to mount your dev drive inside the GitHub workspace via
 `${{ github.workspace }}/my_mount_path`, `my_mount_path`, or equivalent.
 
-Note, this is only supported by `NTFS` or `ReFS` drive formats, when using other formats
-it will fall back to a drive letter instead. Also, when a relative path is specified it
-will configure the mount to be relative to your working directory.
+This option is only supported when using the `NTFS` or `ReFS` drive formats, otherwise
+it will fall back to a drive letter instead. Lastly, when a relative path is specified
+it the mount path will end up being relative to your current working directory.
 
 **Warning**: Setting `mount-path` to exactly `${{ github.workspace }}` and then running
 `actions/checkout` will try to wipe your mount folder, causing an error that looks like
@@ -108,13 +110,13 @@ In such cases, it is recommended you run `actions/checkout` before this action.
 You can also leverage `workspace-copy: true` to copy your contents as long as
 your mount path is outside `${{ github.workspace }}`.
 
-#### `mount-if-exists`
+### *mount-if-exists*
 
 Mounts the dev drive if it already exists at `drive-path` location. When it does not exist,
 it will fall back to creating one at that location instead. This is useful when your workflow
 caches the dev drive for further use in other jobs via `actions/cache`.
 
-#### `workspace-copy`
+### *workspace-copy*
 
 This copies `${{ github.workspace }}` to your dev drive. Usually when you use `actions/checkout`
 it creates a shallow copy of your commit to `${{ github.workspace }}`. When `workspace-copy`
@@ -132,16 +134,18 @@ GitHub workspace (e.g. `${{ github.workspace }}/../my_mount_path`).
 These environment variables are meant to be used along `working-directory` to make sure
 your workflow commands are executing relative to your dev drive.
 
-#### `DEV_DRIVE`
+#### *DEV_DRIVE*
 
 Contains the path to your dev drive of the form `<DRIVE_LETTER>:` or the canonical `mount-path`.
 For example, if the dev drive assigned letter is `E`, `${{ env.DEV_DRIVE }}` will contain `E:`.
-Consequently, if your dev drive canonical mount path is `D:\a\path\to\mount`, that will be the
-value of the env var.
+
+When `mount-path` is set, the value will be the resolved canonical path of the mount path.
+For example if your specified mount path is `my_mount_path`, the value will look like
+`D:\a\path\to\my_mount_path`.
 
 This env var is always set.
 
-#### `DEV_DRIVE_WORKSPACE`
+#### *DEV_DRIVE_WORKSPACE*
 
 When `workspace-copy` is set to true, this contains the workspace location as represented
 by the dev drive location. For example if your GitHub workspace is `D:\a\<project-name>\<project-name>`
@@ -153,7 +157,7 @@ location must be outside your GitHub workspace (e.g. `${{ github.workspace }}/..
 This env var is only set **if-only-if** `workspace-copy` option is set. Otherwise, it's expected that
 you'd use `DEV_DRIVE` env var instead.
 
-#### `DEV_DRIVE_PATH`
+#### *DEV_DRIVE_PATH*
 
 The canonical location of the VHDX file.
 
@@ -168,7 +172,7 @@ This env var is always set.
 
 ## Examples
 
-#### Setting working directory to use Dev Drive workspace
+### Setting working directory to use Dev Drive workspace
 
 ```yaml
 - uses: actions/checkout@v4
@@ -180,7 +184,7 @@ This env var is always set.
   run: npm install
 ```
 
-#### Installing software inside Dev Drive root
+### Installing software inside Dev Drive root
 
 ```yaml
 - uses: samypr100/setup-dev-drive@v3
@@ -191,7 +195,7 @@ This env var is always set.
   run: rustup show
 ```
 
-#### Caching the Dev Drive
+### Caching the Dev Drive
 
 Inspired by [actions/cache#752 (comment)](https://github.com/actions/cache/issues/752#issuecomment-1847036770)
 
