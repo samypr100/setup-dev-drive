@@ -64,6 +64,7 @@ jobs:
           mount-path: ""
           mount-if-exists: false
           workspace-copy: true
+          native-dev-drive: false
 
   test-formats:
     strategy:

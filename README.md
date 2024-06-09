@@ -39,13 +39,22 @@ You can optionally pass parameters to the action as follows:
 ```yaml
 - uses: samypr100/setup-dev-drive@v3
   with:
+    # Drive size in bytes (or as a PowerShell numeric literal). Defaults to 1GB.
     drive-size: 1GB
+    # Drive file system (ReFS, NTFS, etc.). Defaults to ReFS.
     drive-format: ReFS
+    # Drive allocation (Dynamic or Fixed). Defaults to Dynamic.
     drive-type: Dynamic
+    # Path to VHDX file. Defaults to `/dev_drive.vhdx`
     drive-path: "dev_drive.vhdx"
+    # Path to mount the drive. Defaults to creating a new arbitrary drive letter such as "E:".
     mount-path: "my_mount_path"
+    # Mounts (rather than create) an existing VHDX in drive-path. Defaults to false.
     mount-if-exists: false
+    # Copies ${{ github.workspace }} to your dev drive. Defaults to false.
     workspace-copy: false
+    # Use native dev drive support when available. Defaults to true.
+    native-dev-drive: true
 ```
 
 This action is [compatible](#runner-compatibility) with `windows-2022` runners or above.
@@ -56,19 +65,25 @@ For more examples, take a look in the dedicated [examples section](#examples).
 
 ### *drive-size*
 
-Allows you to configure the dev drive size. This is subject to the limit of space
+By default, this option is set to `1GB`.
+
+Allows you to configure the dev drive size in bytes. This is subject to the limit of space
 available on your runner. The default public runners roughly hold about 15GB of
 [space](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories),
 so it's suggested you keep your drive size below that limit, or you may encounter errors.
 
+You can use PowerShell built in [Numeric Literals](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_numeric_literals)
+functionality to automatically expand expressions like `1GB` to mean `1073741824`.
+
 ### *drive-format*
 
-The format of the drive, by default `ReFS` but it can be any of `FAT, FAT32, exFAT, NTFS, ReFS`
+The format of the drive, by default `ReFS` but it can be any of `FAT`, `FAT32`, `exFAT`, `NTFS`, `ReFS`
 as provided by [Format-Volume](https://learn.microsoft.com/en-us/powershell/module/storage/format-volume).
 
 ### *drive-path*
 
-The path to the dev drive VHDX file, defaults to the relative path `dev_drive.vhdx`.
+The path to the dev drive VHDX file, defaults to the relative path `dev_drive.vhdx` under the
+current system root.
 
 When a relative path is provided, it will be relative to `C:\`, `D:\` or the default
 workspace drive letter on the runner. Hence, `dev_drive.vhdx` will likely resolve to
@@ -80,6 +95,8 @@ in such scenarios.
 
 ### *drive-type*
 
+By default, this option is set to `Dynamic`.
+
 Determines the type of drive, `Fixed` or `Dynamic`. There are performance tradeoffs between
 both. For the purposes of this action `Dynamic` is used by default for flexibility.
 
@@ -90,7 +107,7 @@ payload to cache when the job ends.
 
 ### *mount-path*
 
-By default, this option is not set.
+By default, this option is not set and defaults to a new arbitrary drive letter such as `E:`.
 
 Mounts the dev drive at the specified `mount-path` location. This option can be
 useful when you want to mount your dev drive inside the GitHub workspace via
@@ -112,11 +129,15 @@ your mount path is outside `${{ github.workspace }}`.
 
 ### *mount-if-exists*
 
+By default, this option is set to `false`.
+
 Mounts the dev drive if it already exists at `drive-path` location. When it does not exist,
 it will fall back to creating one at that location instead. This is useful when your workflow
 caches the dev drive for further use in other jobs via `actions/cache`.
 
 ### *workspace-copy*
+
+By default, this option is set to `false`.
 
 This copies `${{ github.workspace }}` to your dev drive. Usually when you use `actions/checkout`
 it creates a shallow copy of your commit to `${{ github.workspace }}`. When `workspace-copy`
@@ -128,6 +149,14 @@ See [actions/checkout#197](https://github.com/actions/checkout/issues/197).
 
 This option is compatible with `mount-path` as long as the mount path is not directly located inside your
 GitHub workspace (e.g. `${{ github.workspace }}/../my_mount_path`).
+
+### *native-dev-drive*
+
+By default, this option is set to `true`.
+
+This action will automatically use the built-in [Windows Dev Drive](https://learn.microsoft.com/en-us/windows/dev-drive/)
+on your behalf when it's available on your Windows runner and `ReFS` is used.
+You can use this option to turn this automatic usage off.
 
 ## Environment Variables
 

@@ -21,6 +21,7 @@ async function doDevDriveCommand(
   driveType: string,
   mountPath: string,
   mountIfExists: boolean,
+  nativeDevDrive: boolean,
 ): Promise<string> {
   if (mountIfExists) {
     try {
@@ -37,7 +38,14 @@ async function doDevDriveCommand(
   let mountedPath
   if (!mountIfExists) {
     core.info('Creating Dev Drive.')
-    mountedPath = await create(driveSize, driveFormat, drivePath, driveType, mountPath)
+    mountedPath = await create(
+      driveSize,
+      driveFormat,
+      drivePath,
+      driveType,
+      mountPath,
+      nativeDevDrive,
+    )
     core.info('Successfully created Dev Drive.')
   } else {
     core.info('Mounting Dev Drive.')
@@ -105,6 +113,7 @@ export async function setup(
   mountPath: string,
   mountIfExists: boolean,
   copyWorkspace: boolean,
+  nativeDevDrive: boolean,
 ): Promise<void> {
   if (process.platform !== WIN_PLATFORM) {
     core.info('This action can only run on Windows.')
@@ -161,6 +170,7 @@ export async function setup(
     driveType,
     normalizedMountPath,
     mountIfExists,
+    nativeDevDrive,
   )
 
   if (copyWorkspace) {
