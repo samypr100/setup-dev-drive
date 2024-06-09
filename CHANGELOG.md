@@ -1,3 +1,9 @@
+# 3.1.0
+
+* Expose `native-dev-drive` as an option to turn off automatic native Dev Drive usage.
+* Documentation improvements.
+* Align package.json version.
+
 # 3.0.0
 
 * Allow mounting dev drive in specified mount path (ReFS, NTFS only).

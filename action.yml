@@ -1,6 +1,9 @@
 name: "Setup Dev Drive"
 description: "A GitHub Action to setup a Windows Dev Drive."
 author: "samypr100"
+branding:
+  icon: hard-drive
+  color: purple
 inputs:
   drive-size:
     description: "Drive Size. Examples: 1GB, 3GB, 10GB."
@@ -23,10 +26,10 @@ inputs:
   workspace-copy:
     description: "Copy your GITHUB_WORKSPACE checkout to your Dev Drive. Examples: true, false."
     default: "false"
+  native-dev-drive:
+    description: "Use native dev drive support when available."
+    default: "true"
 runs:
   using: "node20"
   main: "dist/setup/index.js"
   post: "dist/cleanup/index.js"
-branding:
-  icon: hard-drive
-  color: purple

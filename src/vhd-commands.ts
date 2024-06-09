@@ -102,6 +102,7 @@ export async function create(
   drivePath: string,
   driveType: string,
   mountPath: string,
+  nativeDevDrive: boolean,
 ): Promise<string> {
   const sizeArg = winQuote(driveSize)
   const formatArg = winQuote(driveFormat)
@@ -113,7 +114,7 @@ export async function create(
   core.debug(`Windows Version ${osVersion}. Native Dev Drive? ${supportsDevDrive}`)
 
   let formatCmd = `Format-Volume -FileSystem ${formatArg} -Confirm:$false -Force`
-  if (supportsDevDrive && formatArg === 'ReFS') {
+  if (nativeDevDrive && supportsDevDrive && formatArg === 'ReFS') {
     formatCmd = `Format-Volume -DevDrive -Confirm:$false -Force`
   }
 

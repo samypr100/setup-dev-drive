@@ -6,6 +6,7 @@ export enum ExternalInputs {
   MountPath = 'mount-path',
   MountIfExists = 'mount-if-exists',
   WorkspaceCopy = 'workspace-copy',
+  NativeDevDrive = 'native-dev-drive',
 }
 
 export enum EnvVariables {
