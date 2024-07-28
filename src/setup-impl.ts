@@ -13,6 +13,7 @@ import {
   WIN_PLATFORM,
 } from './constants'
 import { create, mount } from './vhd-commands'
+import { processEnvMapping } from './env-mapping.js'
 
 async function doDevDriveCommand(
   driveSize: string,
@@ -114,6 +115,7 @@ export async function setup(
   mountIfExists: boolean,
   copyWorkspace: boolean,
   nativeDevDrive: boolean,
+  envMapping: string[],
 ): Promise<void> {
   if (process.platform !== WIN_PLATFORM) {
     core.info('This action can only run on Windows.')
@@ -176,4 +178,11 @@ export async function setup(
   if (copyWorkspace) {
     await doCopyWorkspace(mountedPath, normalizedDrivePath)
   }
+
+  await processEnvMapping(
+    envMapping,
+    EnvVariables.DevDrive,
+    EnvVariables.DevDrivePath,
+    EnvVariables.DevDriveWorkspace,
+  )
 }

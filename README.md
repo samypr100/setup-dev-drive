@@ -55,6 +55,9 @@ You can optionally pass parameters to the action as follows:
     workspace-copy: false
     # Use native dev drive support when available. Defaults to true.
     native-dev-drive: true
+    # Custom mappings of output environment variables. Defaults to no mapping.
+    env-mapping: |
+      MY_PROJECT_BIN,{{ DEV_DRIVE }}/path/to/bin
 ```
 
 This action is [compatible](#runner-compatibility) with `windows-2022` runners or above.
@@ -157,6 +160,59 @@ By default, this option is set to `true`.
 This action will automatically use the built-in [Windows Dev Drive](https://learn.microsoft.com/en-us/windows/dev-drive/)
 on your behalf when it's available on your Windows runner and `ReFS` is used.
 You can use this option to turn this automatic usage off.
+
+
+### *env-mapping*
+
+By default, this option is not set.
+
+This option provides syntactic sugar to manage the environment variables exposed by this action.
+
+On a particular job, it can be repetitive having to re-declare the environment variables like below.
+
+```yaml
+- uses: samypr100/setup-dev-drive@v3
+- name: Step A
+  env:
+    CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
+    RUSTUP_HOME: ${{ env.DEV_DRIVE }}/.rustup
+  run: ...
+- name: Step B
+  env:
+    CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
+    RUSTUP_HOME: ${{ env.DEV_DRIVE }}/.rustup
+  run: ...
+- name: Step C
+  env:
+    CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
+    RUSTUP_HOME: ${{ env.DEV_DRIVE }}/.rustup
+  run: ...
+# ...
+```
+
+This option allows you to define them once per job as shown in the example below.
+
+It leverages [handlebars](https://handlebarsjs.com/) syntax under the hood to expose the supported
+[environment variables](#environment-variables), giving you the ability to create new ones with
+their contents after the action runs, so they can be automatically set in subsequent steps.
+
+**Warning**: No canonicalization is performed on the input. The template is substituted as-is with the
+typical values of the environment variables and the rest of the input is then appended as-is.
+
+```yaml
+- uses: samypr100/setup-dev-drive@v3
+  with:
+    env-mapping: |
+      CARGO_HOME,{{ DEV_DRIVE }}/.cargo
+      RUSTUP_HOME,{{ DEV_DRIVE }}/.rustup
+- name: Step A
+  run: ...
+- name: Step B
+  run: ...
+- name: Step C
+  run: ...
+# ...
+```
 
 ## Environment Variables
 
