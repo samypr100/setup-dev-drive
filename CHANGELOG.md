@@ -1,3 +1,7 @@
+# 3.2.0
+
+* Add `env-mapping` option to support improved environment variables configuration.
+
 # 3.1.0
 
 * Expose `native-dev-drive` as an option to turn off automatic native Dev Drive usage.
