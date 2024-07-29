@@ -65,6 +65,7 @@ jobs:
           mount-if-exists: false
           workspace-copy: true
           native-dev-drive: false
+          env-mapping: ''
 
   test-formats:
     strategy:
@@ -303,3 +304,42 @@ jobs:
           if (-not (Test-Path -Path test.txt -PathType Leaf)) {
             exit 1
           }
+
+  test-env-mapping:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          workspace-copy: true
+          env-mapping: |
+            CARGO_HOME,{{ DEV_DRIVE }}/.cargo
+            RUSTUP_HOME,{{ DEV_DRIVE }}/.rustup
+            MY_ENV_VAR , {{ DEV_DRIVE_PATH }}
+            MY_OTHER_ENV_VAR,{{   DEV_DRIVE_WORKSPACE   }}\other\path
+            SHOULD_WARN,
+            should_also_warn,about_template
+            invalid-env-var,???
+            invalid.env.var,!!!
+            ENV_VAR_VALUE_INCLUDES_COMMAS,{{ DEV_DRIVE}}/my file name, with commas.txt
+            a
+            ,
+            42,{{ DEV_DRIVE }}/42
+            does_it_substitute_1137,{{ DEV_DRIVE }}/$DEV_DRIVE
+      - name: Verify Env Mapping
+        run: |
+          if ($Env:CARGO_HOME -ne '${{ env.DEV_DRIVE }}/.cargo') { Write-Error 'Failed CARGO_HOME'; exit 1 }
+          if ($Env:RUSTUP_HOME -ne '${{ env.DEV_DRIVE }}/.rustup') { Write-Error 'Failed RUSTUP_HOME'; exit 1 }
+          if ($Env:MY_ENV_VAR -ne '${{ env.DEV_DRIVE_PATH }}') { Write-Error 'Failed MY_ENV_VAR'; exit 1 }
+          if ($Env:MY_OTHER_ENV_VAR -ne '${{ env.DEV_DRIVE_WORKSPACE }}\other\path') { Write-Error 'Failed MY_OTHER_ENV_VAR'; exit 1 }
+          if ($Env:SHOULD_WARN -ne $null) { Write-Error 'Failed SHOULD_WARN'; exit 1 }
+          if ($Env:should_also_warn -ne $null) { Write-Error 'Failed should_also_warn'; exit 1 }
+          if (${Env:invalid-env-var} -ne $null) { Write-Error 'Failed invalid-env-var'; exit 1 }
+          if (${Env:invalid.env.var} -ne $null) { Write-Error 'Failed invalid.env.var'; exit 1 }
+          if ($Env:ENV_VAR_VALUE_INCLUDES_COMMAS -ne '${{ env.DEV_DRIVE }}/my file name, with commas.txt') { Write-Error 'Failed ENV_VAR_VALUE_INCLUDES_COMMAS'; exit 1 }
+          if ($Env:a -ne $null) { Write-Error 'Failed a'; exit 1 }
+          if (${Env:,} -ne $null) { Write-Error 'Failed ,'; exit 1 }
+          if (${Env:42} -ne $null) { Write-Error 'Failed 42'; exit 1 }
+          if ($Env:does_it_substitute_1137 -ne '${{ env.DEV_DRIVE }}/$DEV_DRIVE') { Write-Error 'Failed does_it_substitute_1137'; exit 1 }
