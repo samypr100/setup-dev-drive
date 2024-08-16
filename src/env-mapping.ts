@@ -79,7 +79,8 @@ export async function processEnvMapping(
     let result
     try {
       result = templateFunction(context)
-    } catch (_) {
+    } catch (e) {
+      core.debug((e as Error).message)
       core.warning(
         `Unable to render dynamic value at entry ${entryNumber} for \`${rawTemplate}\`. Was an option missing?`,
       )
