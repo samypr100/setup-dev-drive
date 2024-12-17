@@ -5,12 +5,8 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
   {
-    ignores: [
-      'lib/',
-      'dist/',
-      'node_modules/',
-    ],
+    ignores: ['lib/', 'dist/', 'node_modules/'],
   },
 )
