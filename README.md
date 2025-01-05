@@ -39,8 +39,8 @@ You can optionally pass parameters to the action as follows:
 ```yaml
 - uses: samypr100/setup-dev-drive@v3
   with:
-    # Drive size in bytes (or as a PowerShell numeric literal). Defaults to 1GB.
-    drive-size: 1GB
+    # Drive size in bytes (or as a PowerShell numeric literal). Defaults to 2GB.
+    drive-size: 2GB
     # Drive file system (ReFS, NTFS, etc.). Defaults to ReFS.
     drive-format: ReFS
     # Drive allocation (Dynamic or Fixed). Defaults to Dynamic.
@@ -68,7 +68,7 @@ For more examples, take a look in the dedicated [examples section](#examples).
 
 ### *drive-size*
 
-By default, this option is set to `1GB`.
+By default, this option is set to `2GB`.
 
 Allows you to configure the dev drive size in bytes. This is subject to the limit of space
 available on your runner. The default public runners roughly hold about 15GB of
@@ -76,7 +76,7 @@ available on your runner. The default public runners roughly hold about 15GB of
 so it's suggested you keep your drive size below that limit, or you may encounter errors.
 
 You can use PowerShell built in [Numeric Literals](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_numeric_literals)
-functionality to automatically expand expressions like `1GB` to mean `1073741824`.
+functionality to automatically expand expressions like `2GB` to mean `2147483648`.
 
 ### *drive-format*
 

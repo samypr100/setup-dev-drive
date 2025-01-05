@@ -1,3 +1,8 @@
+# 3.3.0
+
+* Add `windows-2025` runner support.
+* Change default VHDX size to 2GB.
+
 # 3.2.0
 
 * Add `env-mapping` option to support improved environment variables configuration.

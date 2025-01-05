@@ -7,7 +7,7 @@ branding:
 inputs:
   drive-size:
     description: "Drive Size. Examples: 1GB, 3GB, 10GB."
-    default: "1GB"
+    default: "2GB"
   drive-format:
     description: "Drive Format. Examples: FAT, FAT32, exFAT, NTFS, ReFS."
     default: "ReFS"
