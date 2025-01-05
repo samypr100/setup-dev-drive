@@ -32,6 +32,15 @@ jobs:
         run: npm run fmt-check
       - name: Run lint check
         run: npm run lint
+      - name: Run bundle
+        run: npm run bundle
+      - name: Compare the expected and actual dist/ directories
+        run: |
+          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build.  See status below:"
+            git diff --text -v
+            exit 1
+          fi
 
   audit:
     runs-on: ubuntu-latest
@@ -42,7 +51,11 @@ jobs:
       - run: npm audit --audit-level moderate --omit dev
 
   test-defaults:
-    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ windows-2022, windows-2025 ]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -50,7 +63,11 @@ jobs:
         uses: ./
 
   test-declare-inputs:
-    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ windows-2022, windows-2025 ]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -71,9 +88,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         drive-format: [ FAT, FAT32, exFAT, NTFS, ReFS ]
         with-mount-path: [ true, false ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -83,14 +101,17 @@ jobs:
           drive-format: ${{ matrix.drive-format }}
           # This should fall back to Drive Letter on unsupported drive formats.
           mount-path: ${{ matrix.with-mount-path && 'mount' || '' }}
+          # Ensure we test FS directly
+          native-dev-drive: false
 
   test-large-size:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         drive-type: [ Fixed, Dynamic ]
         with-mount-path: [ true, false ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -106,8 +127,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         with-mount-path: [ true, false ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -126,9 +148,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         is-relative: [ true, false ]
         drive-format: [ ReFS, NTFS ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -146,9 +169,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         with-mount-path: [ true, false ]
         workspace-copy: [ true ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -173,9 +197,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         with-mount-path: [ true, false ]
         workspace-copy: [ true, false ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -248,8 +273,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         with-mount-path: [ true, false ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -279,8 +305,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner: [ windows-2022, windows-2025 ]
         with-mount-path: [ true, false ]
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     needs: [test-cache-storage]
     steps:
       - name: Check out source code
@@ -306,7 +333,11 @@ jobs:
           }
 
   test-env-mapping:
-    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ windows-2022, windows-2025 ]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
