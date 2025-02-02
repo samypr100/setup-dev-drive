@@ -82,6 +82,7 @@ jobs:
           mount-if-exists: false
           workspace-copy: true
           native-dev-drive: false
+          trusted-dev-drive: false
           env-mapping: ''
 
   test-formats:
@@ -143,6 +144,24 @@ jobs:
       - name: Write File to Dev Drive
         working-directory: ${{ env.DEV_DRIVE }}
         run: New-Item test.txt
+
+
+  test-trusted-mode:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ windows-2022, windows-2025 ]
+        with-mount-path: [ true, false ]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Dev Drive
+        uses: ./
+        with:
+          native-dev-drive: true
+          trusted-dev-drive: true
+          mount-path: ${{ matrix.with-mount-path && 'mount' || '' }}
 
   test-mount-path:
     strategy:

@@ -7,7 +7,15 @@ export enum ExternalInputs {
   MountIfExists = 'mount-if-exists',
   WorkspaceCopy = 'workspace-copy',
   NativeDevDrive = 'native-dev-drive',
+  TrustedDevDrive = 'trusted-dev-drive',
   EnvMapping = 'env-mapping',
+}
+
+export enum Cmdlets {
+  GetVHD = 'Get-VHD',
+  NewVHD = 'New-VHD',
+  MountVHD = 'Mount-VHD',
+  DismountVHD = 'Dismount-VHD',
 }
 
 export enum EnvVariables {

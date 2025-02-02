@@ -23,6 +23,7 @@ async function doDevDriveCommand(
   mountPath: string,
   mountIfExists: boolean,
   nativeDevDrive: boolean,
+  trustedDevDrive: boolean,
 ): Promise<string> {
   if (mountIfExists) {
     try {
@@ -46,6 +47,7 @@ async function doDevDriveCommand(
       driveType,
       mountPath,
       nativeDevDrive,
+      trustedDevDrive,
     )
     core.info('Successfully created Dev Drive.')
   } else {
@@ -115,6 +117,7 @@ export async function setup(
   mountIfExists: boolean,
   copyWorkspace: boolean,
   nativeDevDrive: boolean,
+  trustedDevDrive: boolean,
   envMapping: string[],
 ): Promise<void> {
   if (process.platform !== WIN_PLATFORM) {
@@ -173,6 +176,7 @@ export async function setup(
     normalizedMountPath,
     mountIfExists,
     nativeDevDrive,
+    trustedDevDrive,
   )
 
   if (copyWorkspace) {

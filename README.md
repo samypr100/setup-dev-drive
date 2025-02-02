@@ -55,6 +55,8 @@ You can optionally pass parameters to the action as follows:
     workspace-copy: false
     # Use native dev drive support when available. Defaults to true.
     native-dev-drive: true
+    # Used to mark the native dev drive as trusted. Defaults to false.
+    trusted-dev-drive: false
     # Custom mappings of output environment variables. Defaults to no mapping.
     env-mapping: |
       MY_PROJECT_BIN,{{ DEV_DRIVE }}/path/to/bin
@@ -161,6 +163,15 @@ This action will automatically use the built-in [Windows Dev Drive](https://lear
 on your behalf when it's available on your Windows runner and `ReFS` is used.
 You can use this option to turn this automatic usage off.
 
+### *trusted-dev-drive*
+
+By default, this option is set to `false`.
+
+This action will not mark the dev drive as trusted and will leave it to default settings.
+When an additional degree of performance is desired, marking a native dev drive as trusted may help.
+
+Consult [official documentation](https://learn.microsoft.com/en-us/windows/dev-drive/#understanding-security-risks-and-trust-in-relation-to-dev-drive)
+before considering enabling this functionality.
 
 ### *env-mapping*
 
@@ -214,7 +225,7 @@ typical values of the environment variables and the rest of the input is then ap
 # ...
 ```
 
-## Environment Variables
+## Exported Environment Variables
 
 These environment variables are meant to be used along `working-directory` to make sure
 your workflow commands are executing relative to your dev drive.

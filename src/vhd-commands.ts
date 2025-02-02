@@ -1,6 +1,7 @@
 import { quote } from 'shell-quote'
 import { exec, ExecOptions } from '@actions/exec'
 import {
+  Cmdlets,
   DRIVE_LETTER_RE,
   NATIVE_DEV_DRIVE_WIN_VERSION,
   POWERSHELL_BIN,
@@ -19,21 +20,69 @@ const VHDCommandNotFound = (name: string) =>
 // Basic helper to prevents shell-quote.quote default behavior of escaping `\` in windows.
 const winQuote = (str: string) => quote([str]).replaceAll('\\\\', '\\')
 
+class PowerShellCommandExecutor {
+  private readonly command: string
+  private readonly args: string[] = []
+  private options: ExecOptions = {
+    silent: true,
+    failOnStdErr: false,
+    ignoreReturnCode: true,
+    listeners: {
+      stdout: (data: Buffer) => {
+        this.outStr += data.toString()
+      },
+      stderr: (data: Buffer) => {
+        this.errStr += data.toString()
+      },
+    },
+  }
+  private outStr: string = ''
+  private errStr: string = ''
+
+  constructor(commands: string[]) {
+    this.command = commands.join(' ')
+    this.args = ['-NoProfile', '-Command', `. { ${this.command} }`]
+  }
+
+  public setOptions(customOptions: Partial<ExecOptions>): PowerShellCommandExecutor {
+    this.options = { ...this.options, ...customOptions }
+    return this
+  }
+
+  public getStdOut(): string {
+    // Trim because Buffers tend to have newlines.
+    return this.outStr.trim()
+  }
+
+  public getStdErr(): string {
+    // Trim because Buffers tend to have newlines.
+    return this.errStr.trim()
+  }
+
+  public async execute(): Promise<number> {
+    core.debug(`Executing the following command:\n${this.command}`)
+    const cmdStatus = await exec(POWERSHELL_BIN, this.args, this.options)
+    core.debug(`Command finished with exit code ${cmdStatus}.`)
+    core.debug(`Command stdout:\n${this.getStdOut()}`)
+    core.debug(`Command stderr:\n${this.getStdErr()}`)
+    return cmdStatus
+  }
+}
+
 export async function dismount(drivePath: string, mountPath: string) {
   const pathArg = winQuote(drivePath)
   const mountArg = winQuote(mountPath)
 
   // When running inside `-Command`, `-ErrorAction Stop` will retain the proper exit code
-  const dismountDiskCmd = `Dismount-VHD -Path ${pathArg} -ErrorAction Stop`
-  const dismountDiskCmdArgs = ['-NoProfile', '-Command', `. { ${dismountDiskCmd} }`]
-  core.debug(`Generated the following command:\n${dismountDiskCmd}`)
+  const dismountDiskArgs = [`Dismount-VHD -Path ${pathArg} -ErrorAction Stop`]
+  const dismountDiskExecutor = new PowerShellCommandExecutor(dismountDiskArgs)
 
-  const dismountDiskCmdExists = await checkCommandExist('Dismount-VHD')
+  const dismountDiskCmdExists = await execCommandExists(Cmdlets.DismountVHD)
   if (dismountDiskCmdExists != 0) {
-    throw VHDCommandNotFound('Dismount-VHD')
+    throw VHDCommandNotFound(Cmdlets.DismountVHD)
   }
 
-  const removePartCmd = [
+  const removePartArgs = [
     `$ErrorActionPreference = 'Stop' ;`,
     // Get partitions for VHD
     `Get-VHD -Path ${pathArg} |`,
@@ -42,58 +91,38 @@ export async function dismount(drivePath: string, mountPath: string) {
     // Filter out reserved partitions (if any)
     'where { ($_ | Get-Volume) -ne $Null } |',
     `Remove-PartitionAccessPath -AccessPath ${mountArg}`,
-  ].join(' ')
-  const removePartCmdArgs = ['-NoProfile', '-Command', `. { ${removePartCmd} }`]
-  core.debug(`Generated the following command:\n${removePartCmd}`)
+  ]
+  const removePartExecutor = new PowerShellCommandExecutor(removePartArgs)
 
-  const dismountPartCmdExists = await checkCommandExist('Get-VHD')
+  const dismountPartCmdExists = await execCommandExists(Cmdlets.GetVHD)
   if (dismountPartCmdExists != 0) {
-    throw VHDCommandNotFound('Get-VHD')
-  }
-
-  const options: ExecOptions = {}
-  let outStr = ''
-  let errStr = ''
-  options.silent = true
-  options.failOnStdErr = false
-  options.ignoreReturnCode = true
-  options.listeners = {
-    stdout: (data: Buffer) => {
-      outStr += data.toString()
-    },
-    stderr: (data: Buffer) => {
-      errStr += data.toString()
-    },
+    throw VHDCommandNotFound(Cmdlets.GetVHD)
   }
 
   // Assume mounted path of just two characters is a Drive Letter
-  let retCode
+  let cmdStatus
   const isMountedFolder = !DRIVE_LETTER_RE.test(mountPath)
   if (isMountedFolder) {
     // Remove Partition First
     core.info(`Removing partition at '${mountPath}'.`)
-    retCode = await exec(POWERSHELL_BIN, removePartCmdArgs, options)
-    core.debug(`Command stdout:\n${outStr}`)
-    core.debug(`Command stderr:\n${errStr}`)
-    if (retCode != 0) {
+    cmdStatus = await removePartExecutor.execute()
+    if (cmdStatus != 0) {
       core.warning(
-        `Removal of partition at '${mountPath}' failed with exit code ${retCode}.`,
+        `Removal of partition at '${mountPath}' failed with exit code ${cmdStatus}.`,
       )
     }
-    outStr = ''
-    errStr = ''
   }
 
   // Dismount VHD Last
   core.info(`Dismounting disk at '${drivePath}'.`)
-  retCode = await exec(POWERSHELL_BIN, dismountDiskCmdArgs, options)
-  core.debug(`Command stdout:\n${outStr}`)
-  core.debug(`Command stderr:\n${errStr}`)
-  if (retCode != 0) {
-    core.warning(`Dismounting disk at '${drivePath}' failed with exit code ${retCode}.`)
+  cmdStatus = await dismountDiskExecutor.execute()
+  if (cmdStatus != 0) {
+    core.warning(
+      `Dismounting disk at '${drivePath}' failed with exit code ${cmdStatus}.`,
+    )
   }
 
-  return retCode
+  return cmdStatus
 }
 
 export async function create(
@@ -103,6 +132,7 @@ export async function create(
   driveType: string,
   mountPath: string,
   nativeDevDrive: boolean,
+  trustedDevDrive: boolean,
 ): Promise<string> {
   const sizeArg = winQuote(driveSize)
   const formatArg = winQuote(driveFormat)
@@ -113,14 +143,17 @@ export async function create(
   const supportsDevDrive = compare(os.release(), NATIVE_DEV_DRIVE_WIN_VERSION, '>=')
   core.debug(`Windows Version ${osVersion}. Native Dev Drive? ${supportsDevDrive}`)
 
+  let markAsTrusted = false
   let formatCmd = `Format-Volume -FileSystem ${formatArg} -Confirm:$false -Force`
   if (nativeDevDrive && supportsDevDrive && formatArg === 'ReFS') {
     formatCmd = `Format-Volume -DevDrive -Confirm:$false -Force`
+    // trust mode is compatible with native dev drives only
+    markAsTrusted = trustedDevDrive
   }
 
-  const commandExists = await checkCommandExist('New-VHD')
+  const commandExists = await execCommandExists(Cmdlets.NewVHD)
   if (commandExists != 0) {
-    throw VHDCommandNotFound('New-VHD')
+    throw VHDCommandNotFound(Cmdlets.NewVHD)
   }
 
   // Use drive letter mounting when there's no specified mount path
@@ -137,7 +170,7 @@ export async function create(
     }
   }
 
-  const pwshCommand = [
+  const createDevDriveArgs = [
     `$ErrorActionPreference = 'Stop' ;`,
     '$DevDrive =',
     // Create VHD
@@ -146,7 +179,7 @@ export async function create(
     withDriveLetter ? 'Mount-VHD -PassThru |' : 'Mount-VHD -NoDriveLetter -PassThru |',
     // Init Disk
     'Initialize-Disk -PassThru |',
-    // Init Partition
+    // Init Partitions
     withDriveLetter
       ? 'New-Partition -AssignDriveLetter -UseMaximumSize ;'
       : 'New-Partition -UseMaximumSize ;',
@@ -156,22 +189,30 @@ export async function create(
     withDriveLetter
       ? `Write-Output ($DevDrive.DriveLetter + ':')`
       : `$DevDrive | Add-PartitionAccessPath -AccessPath ${mountArg} | Out-Null ; Write-Output ${mountArg}`,
-  ].join(' ')
+  ]
 
-  core.debug(`Generated the following command:\n${pwshCommand}`)
+  if (markAsTrusted) {
+    core.info('Disabling AV filters for dev drives.')
+    await execDisableAVFilter()
+  }
 
-  const pwshCommandArgs = ['-NoProfile', '-Command', `. { ${pwshCommand} }`]
+  const mountedPath = await execMountOrCreate(createDevDriveArgs)
 
-  return await execMountOrCreate(pwshCommandArgs)
+  if (markAsTrusted) {
+    core.info(`Marking dev drive at ${mountPath} as trusted.`)
+    await execMarkAsTrusted(mountedPath)
+  }
+
+  return mountedPath
 }
 
 export async function mount(drivePath: string, mountPath: string): Promise<string> {
   const pathArg = winQuote(drivePath)
   const mountArg = winQuote(mountPath)
 
-  const commandExists = await checkCommandExist('Mount-VHD')
+  const commandExists = await execCommandExists(Cmdlets.MountVHD)
   if (commandExists != 0) {
-    throw VHDCommandNotFound('Mount-VHD')
+    throw VHDCommandNotFound(Cmdlets.MountVHD)
   }
 
   // Use drive letter mounting when there's no specified mount path
@@ -188,7 +229,7 @@ export async function mount(drivePath: string, mountPath: string): Promise<strin
     }
   }
 
-  const pwshCommand = [
+  const mountCmdArgs = [
     `$ErrorActionPreference = 'Stop' ;`,
     '$DevDrive =',
     // Mount VHD
@@ -203,47 +244,23 @@ export async function mount(drivePath: string, mountPath: string): Promise<strin
     withDriveLetter
       ? `$DevDrive = $DevDrive | Get-Volume ; Write-Output ($DevDrive.DriveLetter + ':')`
       : `$DevDrive | Add-PartitionAccessPath -AccessPath ${mountArg} | Out-Null ; Write-Output ${mountArg}`,
-  ].join(' ')
+  ]
 
-  core.debug(`Generated the following command:\n${pwshCommand}`)
-
-  const pwshCommandArgs = ['-NoProfile', '-Command', `. { ${pwshCommand} }`]
-
-  return await execMountOrCreate(pwshCommandArgs)
+  return await execMountOrCreate(mountCmdArgs)
 }
 
 async function execMountOrCreate(pwshCommandArgs: string[]): Promise<string> {
-  const options: ExecOptions = {}
-  let outStr = ''
-  let errStr = ''
-  options.silent = true
-  options.failOnStdErr = false
-  options.ignoreReturnCode = true
-  options.listeners = {
-    stdout: (data: Buffer) => {
-      outStr += data.toString()
-    },
-    stderr: (data: Buffer) => {
-      errStr += data.toString()
-    },
-  }
+  const commandExecutor = new PowerShellCommandExecutor(pwshCommandArgs)
+  const cmdStatus = await commandExecutor.execute()
 
-  const ret = await exec(POWERSHELL_BIN, pwshCommandArgs, options)
-
-  core.debug(`Command stdout:\n${outStr}`)
-  core.debug(`Command stderr:\n${errStr}`)
-
-  // Trim because Buffers tend to have newlines.
-  const cleanedErr = errStr.trim()
-  if (cleanedErr.length > 0 || ret !== 0) {
-    core.error(`Failed to setup Dev Drive with exit code ${ret}.`)
+  const cleanedErr = commandExecutor.getStdErr()
+  if (cleanedErr.length > 0 || cmdStatus !== 0) {
+    core.error(`Failed to setup Dev Drive with exit code ${cmdStatus}.`)
     throw new Error(cleanedErr)
   }
 
-  // Trim because Buffers tend to have newlines.
-  let mountedPath = outStr.trim()
-
   // Assume mounted path of just two characters is a Drive Letter
+  let mountedPath = commandExecutor.getStdOut()
   if (!DRIVE_LETTER_RE.test(mountedPath)) {
     mountedPath = path.resolve(mountedPath)
   }
@@ -255,15 +272,39 @@ async function execMountOrCreate(pwshCommandArgs: string[]): Promise<string> {
   return mountedPath
 }
 
-async function checkCommandExist(name: string): Promise<number> {
+async function execCommandExists(name: string): Promise<number> {
   // When running inside `-Command`, `-ErrorAction Stop` will retain the proper exit code
-  const pwshCommand = `Get-Command -Name ${name} -CommandType Cmdlet -ErrorAction Stop`
-  const pwshCommandArgs = ['-NoProfile', '-Command', `. { ${pwshCommand} }`]
+  const checkCommandArgs = [
+    `Get-Command -Name ${name} -CommandType Cmdlet -ErrorAction Stop`,
+  ]
+  const checkCommandExecutor = new PowerShellCommandExecutor(checkCommandArgs)
+  return await checkCommandExecutor.execute()
+}
 
-  const options: ExecOptions = {}
-  options.silent = true
-  options.failOnStdErr = false
-  options.ignoreReturnCode = true
+async function execDisableAVFilter(): Promise<number> {
+  const disableAVFilterArgs = [
+    `$ErrorActionPreference = 'Stop' ;`,
+    // Disable AV on dev drive
+    // See https://learn.microsoft.com/en-us/windows/dev-drive/#how-do-i-configure-additional-filters-on-dev-drive
+    'fsutil devdrv enable /disallowAv ;',
+    // Shows enablement logs
+    'fsutil devdrv query',
+  ]
+  const disableAVFilterExecutor = new PowerShellCommandExecutor(disableAVFilterArgs)
+  return await disableAVFilterExecutor.execute()
+}
 
-  return await exec(POWERSHELL_BIN, pwshCommandArgs, options)
+async function execMarkAsTrusted(mountPath: string): Promise<number> {
+  // Note: This function assumes mountPath is escaped already.
+  const markAsTrustedArgs = [
+    `$ErrorActionPreference = 'Stop' ;`,
+    // Mark dev drive as trusted
+    // See https://learn.microsoft.com/en-us/windows/dev-drive/#how-do-i-designate-a-dev-drive-as-trusted
+    `fsutil devdrv clearFiltersAllowed ${mountPath} ;`,
+    `fsutil devdrv trust /f ${mountPath} ;`,
+    // Shows enablement logs
+    `fsutil devdrv query ${mountPath}`,
+  ]
+  const markAsTrustedExecutor = new PowerShellCommandExecutor(markAsTrustedArgs)
+  return await markAsTrustedExecutor.execute()
 }
