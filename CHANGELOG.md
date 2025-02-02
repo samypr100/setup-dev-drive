@@ -1,3 +1,7 @@
+# 3.4.0
+
+* Add ability to mark dev drive as trusted.
+
 # 3.3.0
 
 * Add `windows-2025` runner support.

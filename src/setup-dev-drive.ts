@@ -11,6 +11,7 @@ async function main() {
   const mountIfExists = core.getBooleanInput(ExternalInputs.MountIfExists)
   const copyWorkspace = core.getBooleanInput(ExternalInputs.WorkspaceCopy)
   const nativeDevDrive = core.getBooleanInput(ExternalInputs.NativeDevDrive)
+  const trustedDevDrive = core.getBooleanInput(ExternalInputs.TrustedDevDrive)
   const envMapping = core.getMultilineInput(ExternalInputs.EnvMapping)
   await setup(
     driveSize,
@@ -21,6 +22,7 @@ async function main() {
     mountIfExists,
     copyWorkspace,
     nativeDevDrive,
+    trustedDevDrive,
     envMapping,
   )
 }
