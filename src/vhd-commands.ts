@@ -199,7 +199,7 @@ export async function create(
   const mountedPath = await execMountOrCreate(createDevDriveArgs)
 
   if (markAsTrusted) {
-    core.info(`Marking dev drive at ${mountPath} as trusted.`)
+    core.info(`Marking dev drive at ${mountedPath} as trusted.`)
     await execMarkAsTrusted(mountedPath)
   }
 
