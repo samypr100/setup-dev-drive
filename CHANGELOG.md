@@ -1,3 +1,7 @@
+# 3.4.1
+
+* Improve logging when marking dev drive as trusted.
+
 # 3.4.0
 
 * Add ability to mark dev drive as trusted.
