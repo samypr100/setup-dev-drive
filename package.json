@@ -1,6 +1,6 @@
 {
   "name": "setup-dev-drive",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "private": true,
   "description": "Setup Dev Drive Action",
   "main": "lib/setup-dev-drive.js",

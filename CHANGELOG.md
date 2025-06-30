@@ -1,3 +1,7 @@
+# 3.4.2
+
+* Dependency Housekeeping.
+
 # 3.4.1
 
 * Improve logging when marking dev drive as trusted.
