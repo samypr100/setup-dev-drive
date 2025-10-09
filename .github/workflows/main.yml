@@ -275,18 +275,20 @@ jobs:
       - name: Setup Dev Drive
         uses: ./
 
-  test-legacy-runners:
-    runs-on: windows-2019
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Dev Drive
-        id: setup-drive
-        continue-on-error: true
-        uses: ./
-      - name: Fail when failure is not the outcome
-        if: steps.setup-drive.outcome != 'failure'
-        run: exit 1
+# windows-2019 runners have been decommissioned
+# per https://github.blog/changelog/2025-04-15-upcoming-breaking-changes-and-releases-for-github-actions/#windows-server-2019-is-closing-down
+#  test-legacy-runners:
+#    runs-on: windows-2019
+#    steps:
+#      - name: Check out source code
+#        uses: actions/checkout@v4
+#      - name: Setup Dev Drive
+#        id: setup-drive
+#        continue-on-error: true
+#        uses: ./
+#      - name: Fail when failure is not the outcome
+#        if: steps.setup-drive.outcome != 'failure'
+#        run: exit 1
 
   test-cache-storage:
     strategy:
