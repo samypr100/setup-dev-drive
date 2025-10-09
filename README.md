@@ -308,7 +308,18 @@ Inspired by [actions/cache#752 (comment)](https://github.com/actions/cache/issue
     mount-if-exists: true
 - name: Build and test
   run: bazelisk --output_base=$env:DEV_DRIVE test --config=windows //...
-# ...
+```
+
+**Warning**: The order of `actions/cache` before `samypr100/setup-dev-drive` is
+important as the post execution step from `samypr100/setup-dev-drive` will dismount the
+disk automatically for you, allowing it to be cached in the post execution step of
+`actions/cache`. In cases where you'd like to manage the cache order yourself, make sure
+that the disk is dismounted ahead of caching it. You can do so by adding a step before
+your caching step as shown below.
+
+```yaml
+- name: Dismount Drive
+  run: Dismount-VHD -Path ${{ env.DEV_DRIVE_PATH }}
 ```
 
 ## Runner Compatibility
