@@ -10,8 +10,8 @@
     "bundle:setup": "ncc build -m -o dist/setup lib/setup-dev-drive.js",
     "bundle:cleanup": "ncc build -m -o dist/cleanup lib/cleanup-dev-drive.js",
     "lint": "eslint .",
-    "fmt": "prettier --write src/**/*.ts",
-    "fmt-check": "prettier --check src/**/*.ts",
+    "fmt": "prettier --write src/**/*.ts *.md",
+    "fmt-check": "prettier --check src/**/*.ts *.md",
     "package": "npm run fmt && npm run lint && npm run build && npm run bundle"
   },
   "keywords": [
