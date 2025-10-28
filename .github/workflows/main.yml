@@ -22,8 +22,12 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Install Dependencies
         run: npm install
       - name: Run tsc
@@ -45,8 +49,12 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - run: npm install
       - run: npm audit --audit-level moderate --omit dev
 
@@ -57,8 +65,9 @@ jobs:
         runner: [ windows-2022, windows-2025 ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
 
@@ -69,8 +78,9 @@ jobs:
         runner: [ windows-2022, windows-2025 ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
@@ -94,8 +104,9 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
@@ -114,8 +125,9 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         id: setup-drive
         uses: ./
@@ -132,8 +144,9 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
@@ -154,8 +167,9 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
@@ -172,8 +186,9 @@ jobs:
         drive-format: [ ReFS, NTFS ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
@@ -193,8 +208,9 @@ jobs:
         workspace-copy: [ true ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         id: setup-drive
         uses: ./
@@ -221,8 +237,9 @@ jobs:
         workspace-copy: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         id: setup-drive
         continue-on-error: true
@@ -270,18 +287,20 @@ jobs:
   test-unsupported-os:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
 
-# windows-2019 runners have been decommissioned
-# per https://github.blog/changelog/2025-04-15-upcoming-breaking-changes-and-releases-for-github-actions/#windows-server-2019-is-closing-down
+#  # windows-2019 runners have been decommissioned
+#  # per https://github.blog/changelog/2025-04-15-upcoming-breaking-changes-and-releases-for-github-actions/#windows-server-2019-is-closing-down
 #  test-legacy-runners:
 #    runs-on: windows-2019
 #    steps:
-#      - name: Check out source code
-#        uses: actions/checkout@v4
+#      - uses: actions/checkout@v5
+#        with:
+#          persist-credentials: "false"
 #      - name: Setup Dev Drive
 #        id: setup-drive
 #        continue-on-error: true
@@ -298,8 +317,9 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
@@ -331,8 +351,9 @@ jobs:
     runs-on: ${{ matrix.runner }}
     needs: [test-cache-storage]
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Retrieve Cached Dev Drive
         uses: actions/cache/restore@v4
         with:
@@ -360,8 +381,9 @@ jobs:
         runner: [ windows-2022, windows-2025 ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: "false"
       - name: Setup Dev Drive
         uses: ./
         with:
