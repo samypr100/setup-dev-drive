@@ -1,3 +1,7 @@
+# 4.0.0
+
+- Action now requires Node.js 24 due to Node.js 20 deprecation on GitHub runners.
+
 # 3.4.3
 
 - Minor README.md updates.
