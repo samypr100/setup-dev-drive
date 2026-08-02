@@ -1,3 +1,15 @@
+# 4.1.0
+
+- Dependency Housekeeping for improved Node.js 24 compat.
+  - Bump `@actions/core` to `2.x.x`
+  - Bump `@actions/exec` to `2.x.x`
+  - Bump `@actions/github` to `8.x.x`
+- Update documentation to reference Node.js 24 compatible actions.
+- Stricter
+  [shell quoting](https://github.com/ljharb/shell-quote/blob/64988d9a0e73a2ae710488952e3614958ef289d4/CHANGELOG.md).
+  Existing integrations relying on `~` expansions for `drive-path` or `mount-path` will be
+  affected.
+
 # 4.0.0
 
 - Action now requires Node.js 24 due to Node.js 20 deprecation on GitHub runners.

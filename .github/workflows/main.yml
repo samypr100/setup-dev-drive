@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Install Dependencies
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - run: npm ci
@@ -65,7 +65,7 @@ jobs:
         runner: [ windows-2022, windows-2025 ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -78,7 +78,7 @@ jobs:
         runner: [ windows-2022, windows-2025 ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -104,7 +104,7 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -125,7 +125,7 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -144,7 +144,7 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -167,7 +167,7 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -186,7 +186,7 @@ jobs:
         drive-format: [ ReFS, NTFS ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -208,7 +208,7 @@ jobs:
         workspace-copy: [ true ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -237,7 +237,7 @@ jobs:
         workspace-copy: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -287,7 +287,7 @@ jobs:
   test-unsupported-os:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -298,7 +298,7 @@ jobs:
 #  test-legacy-runners:
 #    runs-on: windows-2019
 #    steps:
-#      - uses: actions/checkout@v5
+#      - uses: actions/checkout@v7
 #        with:
 #          persist-credentials: "false"
 #      - name: Setup Dev Drive
@@ -317,7 +317,7 @@ jobs:
         with-mount-path: [ true, false ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive
@@ -335,7 +335,7 @@ jobs:
           New-Item test.txt
           Dismount-VHD -Path ${{ env.DEV_DRIVE_PATH }}
       - name: Cache Dev Drive
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ env.DEV_DRIVE_PATH }}
           key: ${{ matrix.with-mount-path && format('test-cache-mount-path-{0}', github.run_id) || format('test-cache-drive-letter-{0}', github.run_id) }}
@@ -351,11 +351,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
     needs: [test-cache-storage]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Retrieve Cached Dev Drive
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ needs.test-cache-storage.outputs.dev-drive-path }}
           key: ${{ matrix.with-mount-path && format('test-cache-mount-path-{0}', github.run_id) || format('test-cache-drive-letter-{0}', github.run_id) }}
@@ -381,7 +381,7 @@ jobs:
         runner: [ windows-2022, windows-2025 ]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: "false"
       - name: Setup Dev Drive

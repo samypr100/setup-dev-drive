@@ -35,13 +35,13 @@ creates for you.
 Just add the following line to the `steps:` list in your GitHub Actions yaml:
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v3
+- uses: samypr100/setup-dev-drive@v4
 ```
 
 You can optionally pass parameters to the action as follows:
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v3
+- uses: samypr100/setup-dev-drive@v4
   with:
     # Drive size in bytes (or as a PowerShell numeric literal). Defaults to 2GB.
     drive-size: 2GB
@@ -192,7 +192,7 @@ On a particular job, it can be repetitive having to re-declare the environment v
 below.
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v3
+- uses: samypr100/setup-dev-drive@v4
 - name: Step A
   env:
     CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
@@ -221,7 +221,7 @@ their contents after the action runs, so they can be automatically set in subseq
 the typical values of the environment variables and the rest of the input is then appended as-is.
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v3
+- uses: samypr100/setup-dev-drive@v4
   with:
     env-mapping: |
       CARGO_HOME,{{ DEV_DRIVE }}/.cargo
@@ -282,8 +282,8 @@ This env var is always set.
 ### Setting working directory to use Dev Drive workspace
 
 ```yaml
-- uses: actions/checkout@v4
-- uses: samypr100/setup-dev-drive@v3
+- uses: actions/checkout@v7
+- uses: samypr100/setup-dev-drive@v4
   with:
     workspace-copy: true
 - name: Install dependencies in dev drive
@@ -294,7 +294,7 @@ This env var is always set.
 ### Installing software inside Dev Drive root
 
 ```yaml
-- uses: samypr100/setup-dev-drive@v3
+- uses: samypr100/setup-dev-drive@v4
 - name: Install rust toolchain in dev drive
   env:
     CARGO_HOME: ${{ env.DEV_DRIVE }}/.cargo
@@ -308,12 +308,12 @@ Inspired by
 [actions/cache#752 (comment)](https://github.com/actions/cache/issues/752#issuecomment-1847036770)
 
 ```yaml
-- uses: actions/checkout@v4
-- uses: actions/cache@v4
+- uses: actions/checkout@v7
+- uses: actions/cache@v6
   with:
     path: "C:\\bazel_cache.vhdx"
     key: bazel-cache-windows
-- uses: samypr100/setup-dev-drive@v3
+- uses: samypr100/setup-dev-drive@v4
   with:
     drive-path: "C:\\bazel_cache.vhdx"
     drive-format: NTFS
