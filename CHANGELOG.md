@@ -1,3 +1,11 @@
+# 4.1.0
+
+- Dependency Housekeeping for improved Node.js 24 compat.
+  - Bump `@actions/core` to `2.x.x`
+  - Bump `@actions/exec` to `2.x.x`
+  - Bump `@actions/github` to `8.x.x`
+- Update documentation to reference Node.js 24 compatible actions.
+
 # 4.0.0
 
 - Action now requires Node.js 24 due to Node.js 20 deprecation on GitHub runners.
